@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:background="#000000">
+
+    <EditText
+        android:id="@+id/song"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Song"
+        android:inputType="textPersonName"
+        android:textColor="#479194"
+        android:textColorHint="#479194"
+        android:layout_marginTop="20dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/artist"
+        android:layout_alignEnd="@+id/artist"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"/>
+
+    <EditText
+        android:id="@+id/artist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:textColor="#479194"
+        android:hint="Artist"
+        android:textColorHint="#479194"
+        android:layout_marginTop="15dp"
+        android:layout_below="@+id/song"
+        android:layout_alignEnd="@+id/scrollView2"
+        android:layout_alignStart="@+id/scrollView2"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"/>
+
+    <Button
+        android:id="@+id/getLyrics"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Get Lyrics"
+        android:layout_below="@+id/artist"
+        android:layout_centerHorizontal="true" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="500dp"
+        android:id="@+id/scrollView2"
+        android:layout_below="@+id/getLyrics"
+        android:layout_centerHorizontal="true"
+        android:paddingBottom="20dp"
+        android:paddingTop="10dp">
+
+        <TextView
+            android:id="@+id/customlyrics"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#479194"
+            android:textAlignment="center"
+            android:textSize="20dp"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/getLyrics"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:paddingBottom="20dp"
+            />
+
+    </ScrollView>
+
+
+
+
+</RelativeLayout>
