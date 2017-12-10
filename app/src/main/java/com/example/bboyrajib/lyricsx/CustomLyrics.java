@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -45,6 +46,7 @@ public class CustomLyrics extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try  {
+                    Log.i("tag","inside try");
                     InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
                 } catch (Exception e) {
@@ -64,24 +66,42 @@ public class CustomLyrics extends AppCompatActivity {
             }
         });
     }
+    String string="",string1="";
+    private String[] extract(String song, String artist) {
+        for (int i = 0; i < song.length() - artist.length(); ++i) {
 
+            if (Character.isLetter(song.charAt(i)) || Character.isDigit(song.charAt(i)) || song.charAt(i) == '&' || song.charAt(i) == '\'' || song.charAt(i) == ',' || song.charAt(i) == '(' || song.charAt(i) == ')')
+                string += song.charAt(i);
+            else if (song.charAt(i) == '?')
+                string += "%3F";
+            else
+                string += "_";
+        }
+        for (int i = 0; i < artist.length(); ++i) {
+
+            if (Character.isLetter(artist.charAt(i)) || Character.isDigit(artist.charAt(i)) || artist.charAt(i) == '&' || artist.charAt(i) == '\'' || artist.charAt(i) == ',' || artist.charAt(i) == '(' || artist.charAt(i) == ')')
+                string1 += artist.charAt(i);
+            else if (artist.charAt(i) == '?')
+                string1 += "%3F";
+            else
+                string1 += "_";
+        }
+        string = string.toLowerCase().replaceAll("remastered", "_");
+        string = string.replaceAll("live", "_");
+        Log.i("SongString", string);
+        String arr[] = {string, string1};
+        string = "";
+        string1 = "";
+        return arr;
+    }
     private String getUrl(String song,String artist){
-        String Url = "http://lyric-api.herokuapp.com/api/find/";
-        for(int i=0;i<artist.length();++i){
-            if(Character.isLetter(artist.charAt(i)) || Character.isDigit(artist.charAt(i)) || artist.charAt(i)== '&'|| artist.charAt(i)== 39  || artist.charAt(i)== '?'||  artist.charAt(i)== '-'|| artist.charAt(i)== ',' || artist.charAt(i)=='-' || artist.charAt(i)=='(' || artist.charAt(i)==')')
-                Url+=artist.charAt(i);
-            else
-                Url+="_";
-        }
+        String Url = "http://lyricsx.herokuapp.com/api/find/";
+        Log.i("Url",Url);
 
-        Url+="/";
+        String arr[]=extract(song+" - "+artist,artist);
 
-        for(int i=0;i<song.length();++i){
-            if(Character.isLetter(song.charAt(i)) || Character.isDigit(song.charAt(i))|| song.charAt(i)== '&'|| song.charAt(i)== 39 ||  song.charAt(i)== ','|| song.charAt(i)== '?' || song.charAt(i)== '-' || song.charAt(i)=='-' || song.charAt(i)=='(' || song.charAt(i)==')')
-                Url+=song.charAt(i);
-            else
-                Url+="_";
-        }
+        Url+=arr[1]+"/"+arr[0];
+        Log.i("Url",Url);
 
         return Url;
     }

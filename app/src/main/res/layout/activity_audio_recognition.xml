@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="410dp"
+        android:paddingBottom="10dp"
+
+        android:layout_centerHorizontal="true"
+        android:id="@+id/scrollView3"
+        android:layout_above="@+id/start"
+        android:layout_alignParentTop="true">
+
+
+        <TextView
+            android:id="@+id/recognize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#479194"
+            android:textAlignment="center"
+            android:text="\n\n\n\n\n\n\n\n\n\nPress Button to start listening..\n\nYour lyrics will appear here"
+            android:textSize="17dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:paddingBottom="20dp" />
+    </ScrollView>
+
+    <Button
+        android:id="@+id/start"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:elevation="10dp"
+        android:background="@drawable/recognise"
+        android:layout_marginBottom="12dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+
+
+</RelativeLayout>

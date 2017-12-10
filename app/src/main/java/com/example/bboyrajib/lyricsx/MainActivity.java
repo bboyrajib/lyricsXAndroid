@@ -1,5 +1,7 @@
 package com.example.bboyrajib.lyricsx;
 
+
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -34,6 +36,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
+
 
     TextView lyrics;
     String pack,song,artist;
@@ -86,6 +89,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.audio);
+        fab3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, AudioRecognition.class));
+            }
+        });
+
     }
 
 
@@ -106,6 +117,9 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
+        }
+        if (id == R.id.action_developers) {
+            startActivity(new Intent(MainActivity.this,DeveloperActivity.class));
         }
 
         return super.onOptionsItemSelected(item);
@@ -184,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject jsonObject = new JSONObject(response);
                     String lyric = jsonObject.getString("lyric");
                     if (lyric.isEmpty()) {
-                        lyrics.setText("\n\n\n\n\n\n\n\n\n\nSorry! No Lyrics Found\nTry using Manual Search");
+                        lyrics.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"Sorry! No Lyrics Found\nTry using Manual Search");
                         return;
                     }
 
