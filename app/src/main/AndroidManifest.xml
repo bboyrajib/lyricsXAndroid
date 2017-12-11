@@ -29,6 +29,7 @@
         </activity>
         <activity
             android:name=".CustomLyrics"
+            android:label="LyricsX : Search Lyrics"
             android:screenOrientation="portrait" />
 
         <service
@@ -42,8 +43,13 @@
 
         <activity
             android:name=".AudioRecognition"
+            android:label="LyricsX : Music Recognition"
             android:screenOrientation="portrait" />
-        <activity android:name=".DeveloperActivity"></activity>
+        <activity android:name=".DeveloperActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".SongList"
+            android:label="LyricsX : Search History"
+            android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

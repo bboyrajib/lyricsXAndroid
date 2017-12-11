@@ -109,9 +109,9 @@ public class CustomLyrics extends AppCompatActivity {
      private void getLyricsFunc(String URL){
 
         progressDialog=new ProgressDialog(CustomLyrics.this);
-        progressDialog.setTitle("Fetching");
+        progressDialog.setTitle("Fetching Lyrics");
         progressDialog.setMessage("Please wait a moment");
-        progressDialog.setCancelable(false);
+        progressDialog.setCancelable(true);
         progressDialog.show();
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
@@ -120,6 +120,8 @@ public class CustomLyrics extends AppCompatActivity {
                     progressDialog.dismiss();
                     JSONObject jsonObject=new JSONObject(response);
                     String lyric= jsonObject.getString("lyric");
+                    if(lyric.isEmpty())
+                        clyrics.setText(song_name.toUpperCase()+" - "+artist_name.toUpperCase()+"\n----------------------------------------------\n\n"+"Sorry! No Lyrics found for this song");
                     clyrics.setText(song_name.toUpperCase()+" - "+artist_name.toUpperCase()+"\n----------------------------------------------\n\n"+lyric);
                 }catch (Exception e){
                     e.printStackTrace();

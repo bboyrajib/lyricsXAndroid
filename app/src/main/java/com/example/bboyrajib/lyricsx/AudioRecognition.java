@@ -1,6 +1,9 @@
 package com.example.bboyrajib.lyricsx;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,8 +19,10 @@ import com.android.volley.toolbox.Volley;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -37,14 +42,18 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
     private boolean mProcessing = false;
     private boolean initState = false;
 
-    private String path = "";
+    private String path = "",host,accessKey,accessSecret;
 
     private long startTime = 0;
     private long stopTime = 0;
 
     String title,artist;
+  //  Set<String> set;
+    //Set<String> fetch;
 
     ProgressDialog progressDialog;
+
+    SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,8 +67,8 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         if(!file.exists()){
             file.mkdirs();
         }*/
-
-
+      //  set = new HashSet<String>();
+        prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         mResult = (TextView) findViewById(R.id.recognize);
 
 
@@ -71,25 +80,72 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
             @Override
             public void onClick(View arg0) {
-                start();
+                if(start())
                 Toast.makeText(AudioRecognition.this,"Listening!",Toast.LENGTH_LONG).show();
             }
         });
 
-
-
-
         this.mConfig = new ACRCloudConfig();
+        this.mConfig.acrcloudListener = this;
+        Response.Listener<String> responseListener = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try{
+                    JSONObject jsonObject=new JSONObject(response);
+                    boolean flag= jsonObject.getBoolean("success");
+                    if(flag){
+                        Log.i("Success","Success");
+                        host=jsonObject.getString("host");
+                        accessKey=jsonObject.getString("access_key");
+                        accessSecret=jsonObject.getString("access_secret");
+                        Log.i("Success",host);
+                        Log.i("Success",accessKey);
+                        Log.i("Success",accessSecret);
+                        mConfig.context = AudioRecognition.this;
+                        mConfig.host = host;//"identify-ap-southeast-1.acrcloud.com";
+                        //   this.mConfig.dbPath = path; // offline db path, you can change it with other path which this app can access.
+                        mConfig.accessKey =accessKey;//"80923b0b243154b69f91f05dcabb7d0e";
+                        Log.i("host"," "+host);
+                        mConfig.accessSecret =accessSecret; //"gjptvT4GQSoTDLvOIF5ZbvZ4gp8PzXHi9jZveLoK";
+                        mConfig.protocol = ACRCloudConfig.ACRCloudNetworkProtocol.PROTOCOL_HTTP; // PROTOCOL_HTTPS
+                        mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_REMOTE;
+                        //this.mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_LOCAL;
+                        //this.mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_BOTH;
+
+                        mClient = new ACRCloudClient();
+                        // If reqMode is REC_MODE_LOCAL or REC_MODE_BOTH,
+                        // the function initWithConfig is used to load offline db, and it may cost long time.
+                        initState = mClient.initWithConfig(mConfig);
+                        Log.i("init",""+initState);
+                        if (initState) {
+                            mClient.startPreRecord(3000); //start prerecord, you can call "this.mClient.stopPreRecord()" to stop prerecord.
+                        }
+
+
+                    }
+
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        };
+        LyricsRequest request = new LyricsRequest("http://eurus.96.lt/lyricsxapi.php", responseListener);
+        RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
+        queue.add(request);
+
+
+       /* this.mConfig = new ACRCloudConfig();
         this.mConfig.acrcloudListener = this;
 
         // If you implement IACRCloudResultWithAudioListener and override "onResult(ACRCloudResult result)", you can get the Audio data.
         //this.mConfig.acrcloudResultWithAudioListener = this;
 
         this.mConfig.context = this;
-        this.mConfig.host = "identify-ap-southeast-1.acrcloud.com";
+        this.mConfig.host = host;//"identify-ap-southeast-1.acrcloud.com";
      //   this.mConfig.dbPath = path; // offline db path, you can change it with other path which this app can access.
-        this.mConfig.accessKey = "80923b0b243154b69f91f05dcabb7d0e";
-        this.mConfig.accessSecret = "gjptvT4GQSoTDLvOIF5ZbvZ4gp8PzXHi9jZveLoK";
+        this.mConfig.accessKey =accessKey;//"80923b0b243154b69f91f05dcabb7d0e";
+        Log.i("host"," "+host);
+        this.mConfig.accessSecret =accessSecret; //"gjptvT4GQSoTDLvOIF5ZbvZ4gp8PzXHi9jZveLoK";
         this.mConfig.protocol = ACRCloudConfig.ACRCloudNetworkProtocol.PROTOCOL_HTTP; // PROTOCOL_HTTPS
         this.mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_REMOTE;
         //this.mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_LOCAL;
@@ -102,15 +158,22 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         Log.i("init",""+this.initState);
         if (this.initState) {
             this.mClient.startPreRecord(3000); //start prerecord, you can call "this.mClient.stopPreRecord()" to stop prerecord.
-        }
+        }*/
+
+        findViewById(R.id.list).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(AudioRecognition.this,SongList.class));
+            }
+        });
 
     }
 
 
-    public void start() {
+    public boolean start() {
         if (!this.initState) {
-            Toast.makeText(this, "init error", Toast.LENGTH_SHORT).show();
-            return;
+            Toast.makeText(this, "Initializing! Please wait!", Toast.LENGTH_SHORT).show();
+            return false;
         }
 
         if (!mProcessing) {
@@ -122,6 +185,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
             }
             startTime = System.currentTimeMillis();
         }
+        return true;
     }
 
   /*  protected void stop() {
@@ -188,8 +252,21 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                         artist = art.getString("name");
 
                     }
+                  //  prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+                    SharedPreferences.Editor editor = prefs.edit();
+                        if(prefs.getString("list",null)==null){
+                            editor.putString("list", title + " - " + artist);
+                            editor.commit();
+
+                        }
+                        else {
+                            editor.putString("list", title + " - " + artist + "\n\n" + prefs.getString("list", null));
+                            editor.commit();
+                        }
+
                     getLyricsFunc(getUrl(title,artist),title,artist,title+" - "+artist);
                 }
+
              /*  if (metadata.has("streams")) {
                     JSONArray musics = metadata.getJSONArray("streams");
                     for(int i=0; i<musics.length(); i++) {
@@ -209,6 +286,8 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                 }*/
 
             }
+            else
+                Toast.makeText(AudioRecognition.this,"Sorry! Music not found in Database",Toast.LENGTH_LONG).show();
 
         } catch (JSONException e) {
             Toast.makeText(AudioRecognition.this,"Sorry! Music not found",Toast.LENGTH_LONG).show();
@@ -220,6 +299,9 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
     @Override
     public void onVolumeChanged(double volume) {
+
+        long time = (System.currentTimeMillis() - startTime) / 1000;
+        mResult.setText("\n\n\n\n\n\n\n\n\n\nPress Left Button to start listening..\n\nYour lyrics will appear here\n\nTime Elapsed: "+time + " s");
 
     }
     private String getUrl(String song, String artist) {
@@ -237,9 +319,9 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
 
         progressDialog=new ProgressDialog(AudioRecognition.this);
-        progressDialog.setTitle("Lyrics Found : Fetching");
-        progressDialog.setMessage("Please wait a moment");
-        progressDialog.setCancelable(false);
+        progressDialog.setTitle("Song detected : Fetching Lyrics");
+        progressDialog.setMessage(ticker);
+        progressDialog.setCancelable(true);
         progressDialog.show();
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
@@ -249,7 +331,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                     JSONObject jsonObject = new JSONObject(response);
                     String lyric = jsonObject.getString("lyric");
                     if (lyric.isEmpty()) {
-                        mResult.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\nSorry! No Lyrics Found\nTry using Manual Search");
+                        mResult.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
                         return;
                     }
 
@@ -280,7 +362,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         }
         for (int i = 0; i < artist.length(); ++i) {
 
-            if (Character.isLetter(artist.charAt(i)) || Character.isDigit(artist.charAt(i)) || artist.charAt(i) == '&' || artist.charAt(i) == '\'' || artist.charAt(i) == ',' || artist.charAt(i) == '(' || artist.charAt(i) == ')')
+            if (Character.isLetter(artist.charAt(i))  || Character.isDigit(artist.charAt(i)) || artist.charAt(i) == '&' || artist.charAt(i) == '\'' || artist.charAt(i) == ',' || artist.charAt(i) == '(' || artist.charAt(i) == ')')
                 string1 += artist.charAt(i);
             else if (artist.charAt(i) == '?')
                 string1 += "%3F";
