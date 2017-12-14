@@ -16,6 +16,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
@@ -51,6 +52,26 @@ public class NLService extends NotificationListenerService {
         Log.d("yass","yass");
 
     }
+
+   /* @Override
+    public IBinder onBind(Intent intent) {
+        Log.i("Bind","Bind");
+        prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        SharedPreferences.Editor editor=prefs.edit();
+        editor.putBoolean("permission",true);
+        editor.apply();
+        return super.onBind(intent);
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.i("UnBind","UnBind");
+        prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        SharedPreferences.Editor editor=prefs.edit();
+        editor.putBoolean("permission",false);
+        editor.apply();
+        return super.onUnbind(intent);
+    }*/
 
     @Override
 
@@ -207,6 +228,8 @@ public class NLService extends NotificationListenerService {
                string += song.charAt(i);
            else if(song.charAt(i) == '?')
                string+="%3F";
+           else if(song.charAt(i) == '#')
+               continue;
            else
                string += "_";
        }
@@ -216,11 +239,14 @@ public class NLService extends NotificationListenerService {
                string1 += artist.charAt(i);
            else if(artist.charAt(i) == '?')
                string1+="%3F";
+
            else
                string1 += "_";
        }
        string=string.toLowerCase().replaceAll("remastered","_");
-       string=string.replaceAll("live","_");
+    ///   string=string.replaceAll(" live","_");
+      // string=string.replaceAll("demo","_");
+       string=string.replaceAll("reprise","_");
        Log.i("SongString",string);
        String arr[] = {string, string1};
        string = "";

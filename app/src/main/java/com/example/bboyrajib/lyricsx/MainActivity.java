@@ -2,6 +2,7 @@ package com.example.bboyrajib.lyricsx;
 
 
 
+import android.accounts.AccountManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -32,12 +33,14 @@ import android.widget.Toast;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.common.AccountPicker;
 
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
 
+    int ID;
     TextView lyrics;
     String pack,song,artist;
     String title = "", text = "", ticker = "";
@@ -53,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -98,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
 
 
     @Override
@@ -198,16 +203,16 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject jsonObject = new JSONObject(response);
                     String lyric = jsonObject.getString("lyric");
                     if (lyric.isEmpty()) {
-                        lyrics.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"Sorry! No Lyrics Found\nTry using Manual Search");
+                        lyrics.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\nSorry! No Lyrics Found\nTry using Manual Search");
                         return;
                     }
 
-                      //  sendNotification(song,artist,ticker);
+                        sendNotification();
 
                     lyrics.setText(ticker.toUpperCase() + "\n\n" + lyric);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Toast.makeText(MainActivity.this, "Catch: 404", Toast.LENGTH_SHORT).show();
+                   // Toast.makeText(MainActivity.this, "Catch: 404", Toast.LENGTH_SHORT).show();
                 }
             }
         };
@@ -262,24 +267,22 @@ public class MainActivity extends AppCompatActivity {
         }, 2000);*/
     }
 
-   private void sendNotification(String song, String artist, String ticker) {
+   private void sendNotification() {
 
         // Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder builder = (NotificationCompat.Builder) new NotificationCompat.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(ticker)
-                .setContentText("Lyricsx: Tap to view lyrics")
+                .setContentTitle("LyricsX")
+                .setContentText("Tap to view lyrics")
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setVisibility(1)
-
-                .setLights(Color.RED, 3000, 3000)
                 .setAutoCancel(true);
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
-       notificationIntent.putExtra("song",song);
-       notificationIntent.putExtra("artist",artist);
-       notificationIntent.putExtra("tikcer",ticker);
+      // notificationIntent.putExtra("song",song);
+     //  notificationIntent.putExtra("artist",artist);
+     //  notificationIntent.putExtra("tikcer",ticker);
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
@@ -293,5 +296,18 @@ public class MainActivity extends AppCompatActivity {
         //updateMyActivity(this,body,title);
     }
 
+    @Override
+    protected void onDestroy() {
+        Log.i("destroy","destroy");
+        prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        SharedPreferences.Editor editor=prefs.edit();
+        editor.putString("song",null);
+        editor.putString("artist",null);
+        editor.putString("ticker",null);
+        editor.apply();
+        super.onDestroy();
+    }
+
 
 }
+

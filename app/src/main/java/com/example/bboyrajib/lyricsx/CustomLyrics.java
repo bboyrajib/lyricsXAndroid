@@ -45,6 +45,12 @@ public class CustomLyrics extends AppCompatActivity {
         getLyrics.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                 song_name=song.getText().toString();
+                 artist_name=artist.getText().toString();
+
+                if(song_name.isEmpty() || artist_name.isEmpty())
+                    return;
                 try  {
                     Log.i("tag","inside try");
                     InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
@@ -52,11 +58,6 @@ public class CustomLyrics extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                 song_name=song.getText().toString();
-                 artist_name=artist.getText().toString();
-
-                if(song_name.isEmpty() || artist_name.isEmpty())
-                    return;
                 getLyricsFunc(getUrl(song_name,artist_name));
                 song.setText(null);
                 artist.setText(null);
@@ -133,10 +134,5 @@ public class CustomLyrics extends AppCompatActivity {
          RequestQueue queue = Volley.newRequestQueue(CustomLyrics.this);
          queue.add(request);
     }
-    @Override
-    public void onBackPressed() {
 
-        startActivity(new Intent(CustomLyrics.this,MainActivity.class));
-        CustomLyrics.this.finish();
-    }
 }

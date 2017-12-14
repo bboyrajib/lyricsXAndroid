@@ -74,7 +74,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
         Button startBtn = (Button) findViewById(R.id.start);
 
-
+        Toast.makeText(this, "Initializing!", Toast.LENGTH_SHORT).show();
 
         findViewById(R.id.start).setOnClickListener(new View.OnClickListener() {
 
@@ -94,6 +94,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                     JSONObject jsonObject=new JSONObject(response);
                     boolean flag= jsonObject.getBoolean("success");
                     if(flag){
+                        Toast.makeText(AudioRecognition.this, "Initialized!", Toast.LENGTH_SHORT).show();
                         Log.i("Success","Success");
                         host=jsonObject.getString("host");
                         accessKey=jsonObject.getString("access_key");
@@ -125,6 +126,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                     }
 
                 }catch (Exception e){
+                    Toast.makeText(AudioRecognition.this, "Please check your internet connection!", Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
             }
