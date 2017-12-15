@@ -12,22 +12,28 @@ import org.json.JSONObject;
 import com.acrcloud.rec.sdk.ACRCloudConfig;
 import com.acrcloud.rec.sdk.ACRCloudClient;
 import com.acrcloud.rec.sdk.IACRCloudListener;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.common.AccountPicker;
 
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,11 +53,17 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
     private long startTime = 0;
     private long stopTime = 0;
 
-    String title,artist;
+    String title,artist,album,trackID,has_lyric="0";
+    RelativeLayout relativeLayout;
+    String createTableURL="http://eurus.96.lt/lyricsx_create_table.php";
+    String backupToURL="http://eurus.96.lt/lyricsx_backup_to_table.php";
+    String restoreFromURL="http://eurus.96.lt/lyricsx_restore_from_table.php";
   //  Set<String> set;
     //Set<String> fetch;
 
     ProgressDialog progressDialog;
+    Button startBtn,listbtn;
+
 
     SharedPreferences prefs;
 
@@ -68,72 +80,78 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
             file.mkdirs();
         }*/
       //  set = new HashSet<String>();
+        relativeLayout=(RelativeLayout)findViewById(R.id.rel);
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         mResult = (TextView) findViewById(R.id.recognize);
 
 
-        Button startBtn = (Button) findViewById(R.id.start);
+         startBtn = (Button) findViewById(R.id.start);
+         listbtn = (Button) findViewById(R.id.list);
 
-        Toast.makeText(this, "Initializing!", Toast.LENGTH_SHORT).show();
+        if(!prefs.getBoolean("isAccountSelected",false)) {
+            startBtn.setVisibility(View.GONE);
+            listbtn.setVisibility(View.GONE);
+            mResult.setText("\n\n\n\n\n\n\n\n\n\n\nPlease select an account to continue!");
+            pickUserAccount();
+        }
 
-        findViewById(R.id.start).setOnClickListener(new View.OnClickListener() {
+      //
+        else {
+            Toast.makeText(this, "Initializing!", Toast.LENGTH_SHORT).show();
 
-            @Override
-            public void onClick(View arg0) {
-                if(start())
-                Toast.makeText(AudioRecognition.this,"Listening!",Toast.LENGTH_LONG).show();
-            }
-        });
 
-        this.mConfig = new ACRCloudConfig();
-        this.mConfig.acrcloudListener = this;
-        Response.Listener<String> responseListener = new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                try{
-                    JSONObject jsonObject=new JSONObject(response);
-                    boolean flag= jsonObject.getBoolean("success");
-                    if(flag){
-                        Toast.makeText(AudioRecognition.this, "Initialized!", Toast.LENGTH_SHORT).show();
-                        Log.i("Success","Success");
-                        host=jsonObject.getString("host");
-                        accessKey=jsonObject.getString("access_key");
-                        accessSecret=jsonObject.getString("access_secret");
-                        Log.i("Success",host);
-                        Log.i("Success",accessKey);
-                        Log.i("Success",accessSecret);
-                        mConfig.context = AudioRecognition.this;
-                        mConfig.host = host;//"identify-ap-southeast-1.acrcloud.com";
-                        //   this.mConfig.dbPath = path; // offline db path, you can change it with other path which this app can access.
-                        mConfig.accessKey =accessKey;//"80923b0b243154b69f91f05dcabb7d0e";
-                        Log.i("host"," "+host);
-                        mConfig.accessSecret =accessSecret; //"gjptvT4GQSoTDLvOIF5ZbvZ4gp8PzXHi9jZveLoK";
-                        mConfig.protocol = ACRCloudConfig.ACRCloudNetworkProtocol.PROTOCOL_HTTP; // PROTOCOL_HTTPS
-                        mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_REMOTE;
-                        //this.mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_LOCAL;
-                        //this.mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_BOTH;
+            this.mConfig = new ACRCloudConfig();
+            this.mConfig.acrcloudListener = this;
+            Response.Listener<String> responseListener = new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        boolean flag = jsonObject.getBoolean("success");
+                        if (flag) {
+                            Toast.makeText(AudioRecognition.this, "Initialized!", Toast.LENGTH_SHORT).show();
+                            Log.i("Success", "Success");
+                            host = jsonObject.getString("host");
+                            accessKey = jsonObject.getString("access_key");
+                            accessSecret = jsonObject.getString("access_secret");
+                            Log.i("Success", host);
+                            Log.i("Success", accessKey);
+                            Log.i("Success", accessSecret);
+                            mConfig.context = AudioRecognition.this;
+                            mConfig.host = host;//"identify-ap-southeast-1.acrcloud.com";
+                            //   this.mConfig.dbPath = path; // offline db path, you can change it with other path which this app can access.
+                            mConfig.accessKey = accessKey;//"80923b0b243154b69f91f05dcabb7d0e";
+                            Log.i("host", " " + host);
+                            mConfig.accessSecret = accessSecret; //"gjptvT4GQSoTDLvOIF5ZbvZ4gp8PzXHi9jZveLoK";
+                            mConfig.protocol = ACRCloudConfig.ACRCloudNetworkProtocol.PROTOCOL_HTTP; // PROTOCOL_HTTPS
+                            mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_REMOTE;
+                            //this.mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_LOCAL;
+                            //this.mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_BOTH;
 
-                        mClient = new ACRCloudClient();
-                        // If reqMode is REC_MODE_LOCAL or REC_MODE_BOTH,
-                        // the function initWithConfig is used to load offline db, and it may cost long time.
-                        initState = mClient.initWithConfig(mConfig);
-                        Log.i("init",""+initState);
-                        if (initState) {
-                            mClient.startPreRecord(3000); //start prerecord, you can call "this.mClient.stopPreRecord()" to stop prerecord.
+                            mClient = new ACRCloudClient();
+                            // If reqMode is REC_MODE_LOCAL or REC_MODE_BOTH,
+                            // the function initWithConfig is used to load offline db, and it may cost long time.
+                            initState = mClient.initWithConfig(mConfig);
+                            Log.i("init", "" + initState);
+                            if (initState) {
+                                mClient.startPreRecord(3000); //start prerecord, you can call "this.mClient.stopPreRecord()" to stop prerecord.
+                            }
+
+
                         }
 
-
+                    } catch (Exception e) {
+                        Toast.makeText(AudioRecognition.this, "Please check your internet connection!", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
                     }
-
-                }catch (Exception e){
-                    Toast.makeText(AudioRecognition.this, "Please check your internet connection!", Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
                 }
-            }
-        };
-        LyricsRequest request = new LyricsRequest("http://eurus.96.lt/lyricsxapi.php", responseListener);
-        RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
-        queue.add(request);
+            };
+            LyricsRequest request = new LyricsRequest("http://eurus.96.lt/lyricsxapi.php", responseListener);
+            request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+            RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
+            queue.add(request);
+        }
 
 
        /* this.mConfig = new ACRCloudConfig();
@@ -161,13 +179,21 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         if (this.initState) {
             this.mClient.startPreRecord(3000); //start prerecord, you can call "this.mClient.stopPreRecord()" to stop prerecord.
         }*/
+        startBtn.setOnClickListener(new View.OnClickListener() {
 
-        findViewById(R.id.list).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                startActivity(new Intent(AudioRecognition.this,SongList.class));
+            public void onClick(View arg0) {
+                if (start())
+                    Toast.makeText(AudioRecognition.this, "Listening!", Toast.LENGTH_LONG).show();
             }
         });
+            listbtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startActivity(new Intent(AudioRecognition.this, SongListRecyclerView.class));
+                }
+            });
+
 
     }
 
@@ -252,19 +278,45 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                         JSONArray artistt = tt.getJSONArray("artists");
                         JSONObject art = (JSONObject) artistt.get(0);
                         artist = art.getString("name");
+                        JSONObject albumObject=tt.getJSONObject("album");
+                        album=albumObject.getString("name");
+                        Log.i("album"," "+album);
+                        if(tt.has("external_metadata")) {
+                            JSONObject externalmetadataObject = tt.getJSONObject("external_metadata");
+                            if(externalmetadataObject.has("spotify")) {
+                                JSONObject spotifyObject = externalmetadataObject.getJSONObject("spotify");
+                                JSONObject trackObject = spotifyObject.getJSONObject("track");
+                                trackID = trackObject.getString("id");
+                            }
+                            else
+                                trackID="NOID";
+                        }
+                        Log.i("ID",trackID);
 
                     }
+
+
                   //  prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                    SharedPreferences.Editor editor = prefs.edit();
-                        if(prefs.getString("list",null)==null){
-                            editor.putString("list", title + " - " + artist);
+                    /*SharedPreferences.Editor editor = prefs.edit();
+                        if(prefs.getString("listSong",null)==null){
+                            //editor.putString("list", title + " - " + artist);
+                            editor.putString("listSong",title);
+                            editor.putString("listArtist",artist);
+                            editor.putString("listAlbum",album);
+                            editor.putString("trackID",trackID);
+
+
                             editor.commit();
 
                         }
                         else {
-                            editor.putString("list", title + " - " + artist + "\n\n" + prefs.getString("list", null));
+                          //  editor.putString("list", title + " - " + artist + "\n\n" + prefs.getString("list", null));
+                            editor.putString("listSong", title  + "\n\n" + prefs.getString("listSong", null));
+                            editor.putString("listArtist", artist + "\n\n" + prefs.getString("listArtist", null));
+                            editor.putString("listAlbum", album + "\n\n" + prefs.getString("listAlbum", null));
+                            editor.putString("trackID", trackID + "\n\n" + prefs.getString("trackID", null));
                             editor.commit();
-                        }
+                        }*/
 
                     getLyricsFunc(getUrl(title,artist),title,artist,title+" - "+artist);
                 }
@@ -329,13 +381,20 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
             @Override
             public void onResponse(String response) {
                 try {
-                    progressDialog.dismiss();
+
+
                     JSONObject jsonObject = new JSONObject(response);
                     String lyric = jsonObject.getString("lyric");
                     if (lyric.isEmpty()) {
                         mResult.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
+                        has_lyric="0";
+                        progressDialog.dismiss();
+                        backUpMyData();
                         return;
                     }
+                    has_lyric="1";
+                    backUpMyData();
+                    progressDialog.dismiss();
 
                     //  sendNotification(song,artist,ticker);
 
@@ -396,5 +455,143 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         startActivity(new Intent(AudioRecognition.this,MainActivity.class));
         AudioRecognition.this.finish();
     }
+
+    public void pickUserAccount() {
+    /*This will list all available accounts on device without any filtering*/
+        Intent intent = AccountPicker.newChooseAccountIntent(null, null,
+                new String[]{"com.google"}, false, null, null, null, null);
+        startActivityForResult(intent, 23);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 23) {
+            // Receiving a result from the AccountPicker
+            if (resultCode == RESULT_OK) {
+                startBtn.setVisibility(View.VISIBLE);
+                listbtn.setVisibility(View.VISIBLE);
+                mResult.setText("\n\n\n\n\n\n\n\n\n\n\nPress Left Button to start listening..\n\nYour lyrics will appear here");
+                initialise();
+                Toast.makeText(this, "Initializing!", Toast.LENGTH_SHORT).show();
+                String username;
+                username = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+                username = username.substring(0, username.indexOf("@")).replace(".", "");
+                //   Toast.makeText(this,username,Toast.LENGTH_LONG).show();
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putBoolean("isAccountSelected", true);
+                editor.putString("username", username);
+                editor.apply();
+            } else if (resultCode == RESULT_CANCELED) {
+                Snackbar snackbar = Snackbar.make(relativeLayout, "Please select an account to continue!", Snackbar.LENGTH_INDEFINITE).setAction("SELECT", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        pickUserAccount();
+                    }
+                });
+                snackbar.setActionTextColor(Color.rgb(71, 145, 148));
+                View sbView = snackbar.getView();
+                TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                textView.setTextColor(Color.YELLOW);
+                snackbar.show();
+
+            }
+        }
+    }
+
+    private void backUpMyData(){
+        Response.Listener<String> responseListener = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    // progressDialog.dismiss();
+                    backupData();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        String user=prefs.getString("username",null);
+        BackupRestorePostRequest request = new BackupRestorePostRequest(createTableURL, user, responseListener);
+        RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
+        queue.add(request);
+    }
+
+
+    private void backupData(){
+        Response.Listener<String> listener = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    Log.i("Backup",new JSONObject(response).getString("success")+" ");
+
+                } catch (Exception e) {
+
+                    e.printStackTrace();
+                }
+            }
+        };
+        Log.i("All",title+" "+album+" "+artist+" "+trackID+" "+has_lyric);
+      //  Log.i("requests to server"," " +songs[i]);
+        BackupRestorePostRequest request = new BackupRestorePostRequest(backupToURL, prefs.getString("username",null), title,artist,album,trackID,has_lyric, listener);
+        request.setRetryPolicy(new DefaultRetryPolicy(DefaultRetryPolicy.DEFAULT_TIMEOUT_MS * 2, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
+        queue.add(request);
+    }
+
+    private void initialise(){
+        this.mConfig = new ACRCloudConfig();
+        this.mConfig.acrcloudListener = this;
+        Response.Listener<String> responseListener = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try{
+                    JSONObject jsonObject=new JSONObject(response);
+                    boolean flag= jsonObject.getBoolean("success");
+                    if(flag){
+                        Toast.makeText(AudioRecognition.this, "Initialized!", Toast.LENGTH_SHORT).show();
+                        Log.i("Success","Success");
+                        host=jsonObject.getString("host");
+                        accessKey=jsonObject.getString("access_key");
+                        accessSecret=jsonObject.getString("access_secret");
+                        Log.i("Success",host);
+                        Log.i("Success",accessKey);
+                        Log.i("Success",accessSecret);
+                        mConfig.context = AudioRecognition.this;
+                        mConfig.host = host;//"identify-ap-southeast-1.acrcloud.com";
+                        //   this.mConfig.dbPath = path; // offline db path, you can change it with other path which this app can access.
+                        mConfig.accessKey =accessKey;//"80923b0b243154b69f91f05dcabb7d0e";
+                        Log.i("host"," "+host);
+                        mConfig.accessSecret =accessSecret; //"gjptvT4GQSoTDLvOIF5ZbvZ4gp8PzXHi9jZveLoK";
+                        mConfig.protocol = ACRCloudConfig.ACRCloudNetworkProtocol.PROTOCOL_HTTP; // PROTOCOL_HTTPS
+                        mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_REMOTE;
+                        //this.mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_LOCAL;
+                        //this.mConfig.reqMode = ACRCloudConfig.ACRCloudRecMode.REC_MODE_BOTH;
+
+                        mClient = new ACRCloudClient();
+                        // If reqMode is REC_MODE_LOCAL or REC_MODE_BOTH,
+                        // the function initWithConfig is used to load offline db, and it may cost long time.
+                        initState = mClient.initWithConfig(mConfig);
+                        Log.i("init",""+initState);
+                        if (initState) {
+                            mClient.startPreRecord(3000); //start prerecord, you can call "this.mClient.stopPreRecord()" to stop prerecord.
+                        }
+
+
+                    }
+
+                }catch (Exception e){
+                    Toast.makeText(AudioRecognition.this, "Please check your internet connection!", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+            }
+        };
+        LyricsRequest request = new LyricsRequest("http://eurus.96.lt/lyricsxapi.php", responseListener);
+        request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
+        queue.add(request);
+    }
 }
+
 

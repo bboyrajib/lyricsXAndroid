@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.GET_ACCOUNTS"></uses-permission>
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
 
     <application
         android:allowBackup="true"
@@ -46,10 +46,19 @@
             android:name=".AudioRecognition"
             android:label="LyricsX : Music Recognition"
             android:screenOrientation="portrait" />
-        <activity android:name=".DeveloperActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".SongList"
+        <activity
+            android:name=".DeveloperActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".SongList"
             android:label="LyricsX : Search History"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".SongListRecyclerView"
+            android:label="LyricsX : Search History"
+            android:screenOrientation="portrait" />
+        <activity android:name=".ViewLyrics"
+            android:label="LyricsX : View Lyrics"
             android:screenOrientation="portrait"></activity>
     </application>
 

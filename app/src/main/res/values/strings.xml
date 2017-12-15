@@ -2,4 +2,8 @@
     <string name="app_name">LyricsX</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_custom_lyrics">CustomLyrics</string>
+
+    <string name="my_cart">My Cart</string>
+    <string name="delete">DELETE</string>
+
 </resources>

@@ -9,6 +9,7 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -24,6 +25,10 @@ import com.google.android.gms.common.AccountPicker;
 
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -71,7 +76,7 @@ public class SongList extends AppCompatActivity {
                 progressDialog=new ProgressDialog(SongList.this);
                 progressDialog.setTitle("Backing up your songs");
                 progressDialog.setMessage("Please wait a moment");
-                progressDialog.setCancelable(false);
+                progressDialog.setCancelable(true);
                 progressDialog.show();
 
 
@@ -114,7 +119,7 @@ public class SongList extends AppCompatActivity {
                 progressDialog=new ProgressDialog(SongList.this);
                 progressDialog.setTitle("Restoring your songs");
                 progressDialog.setMessage("Please wait a moment");
-                progressDialog.setCancelable(false);
+                progressDialog.setCancelable(true);
                 progressDialog.show();
                 String username;
                 username=data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
@@ -215,6 +220,8 @@ public class SongList extends AppCompatActivity {
         String username=prefs.getString("username",null);
         String data=prefs.getString("list",null);
         String[] arr=data.split("\\n\\n");
+
+      //  testBase64(data);
         int prev_row=prefs.getInt("rows",0);
         int curr_row=arr.length;
         if(curr_row==prev_row) {
@@ -227,7 +234,7 @@ public class SongList extends AppCompatActivity {
             snackbar.show();
             return;
         }
-        for(int i=0;i<curr_row-prev_row;i++) {
+        for(int i=curr_row-prev_row-1;i>=0;i--) {
             Log.i("Songs: ",arr[i]);
             Response.Listener<String> listener = new Response.Listener<String>() {
                 @Override
@@ -266,5 +273,28 @@ public class SongList extends AppCompatActivity {
         editor.apply();
 
     }
+
+
+    public static void testBase64(String strs){
+        // serialize
+        try {
+
+            // your string
+            String yourString = Base64.encodeToString(strs.getBytes(), Base64.DEFAULT);
+            Log.i("Base64 ",yourString);
+
+           byte b[]=new byte[100];
+            ByteArrayInputStream inputStream=new ByteArrayInputStream(Base64.decode(yourString.getBytes(),Base64.DEFAULT));
+            inputStream.read(b);
+            Log.i("Decode ",""+new String(b));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        // deserialize
+      //  ByteArrayInputStream in = Base64.decode(yourString, Base64.DEFAULT);
+    }
+
+
 
 }
