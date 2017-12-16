@@ -19,13 +19,13 @@ public class BackupRestorePostRequest extends StringRequest {
         params = new HashMap<>();
         params.put("username",username);
     }
-    public BackupRestorePostRequest(String URL,String username,String data,Response.Listener<String> listener) {
+    public BackupRestorePostRequest(String URL,String username,String DB_ID,Response.Listener<String> listener) {
         super(Method.POST, URL, listener, null);
         params = new HashMap<>();
         params.put("username",username);
-        params.put("data",data);
+        params.put("db_id",DB_ID);
     }
-    public BackupRestorePostRequest(String URL,String username,String song, String artist, String album, String ID, String has_lyric, Response.Listener<String> listener){
+    public BackupRestorePostRequest(String URL,String username,String song, String artist, String album, String ID, String has_lyric, String imageUrl, Response.Listener<String> listener){
         super(Method.POST, URL, listener, null);
         params = new HashMap<>();
         params.put("username",username);
@@ -34,6 +34,7 @@ public class BackupRestorePostRequest extends StringRequest {
         params.put("album",album);
         params.put("id",ID);
         params.put("has_lyric",has_lyric);
+        params.put("imageUrl",imageUrl);
     }
     @Override
     public Map<String, String> getParams() {

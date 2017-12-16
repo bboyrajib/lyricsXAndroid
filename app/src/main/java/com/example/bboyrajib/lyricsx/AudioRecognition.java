@@ -53,7 +53,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
     private long startTime = 0;
     private long stopTime = 0;
 
-    String title,artist,album,trackID,has_lyric="0";
+    String title,artist,album,trackID,has_lyric="0",imageURL;
     RelativeLayout relativeLayout;
     String createTableURL="http://eurus.96.lt/lyricsx_create_table.php";
     String backupToURL="http://eurus.96.lt/lyricsx_backup_to_table.php";
@@ -287,9 +287,12 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                                 JSONObject spotifyObject = externalmetadataObject.getJSONObject("spotify");
                                 JSONObject trackObject = spotifyObject.getJSONObject("track");
                                 trackID = trackObject.getString("id");
+                                getImageUrl(trackID);
                             }
-                            else
-                                trackID="NOID";
+                            else {
+                                trackID = "NOID";
+                                imageURL="https://deathgrind.club/uploads/posts/2017-09/1506510157_no_cover.png";
+                            }
                         }
                         Log.i("ID",trackID);
 
@@ -533,7 +536,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         };
         Log.i("All",title+" "+album+" "+artist+" "+trackID+" "+has_lyric);
       //  Log.i("requests to server"," " +songs[i]);
-        BackupRestorePostRequest request = new BackupRestorePostRequest(backupToURL, prefs.getString("username",null), title,artist,album,trackID,has_lyric, listener);
+        BackupRestorePostRequest request = new BackupRestorePostRequest(backupToURL, prefs.getString("username",null), title,artist,album,trackID,has_lyric,imageURL, listener);
         request.setRetryPolicy(new DefaultRetryPolicy(DefaultRetryPolicy.DEFAULT_TIMEOUT_MS * 2, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
         queue.add(request);
@@ -592,6 +595,34 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
         queue.add(request);
     }
+
+    private void getImageUrl(String ID){
+
+        Response.Listener<String> responseListener = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try{
+                    JSONObject jsonObject=new JSONObject(response);
+                     imageURL=jsonObject.getString("success");
+                     imageURL=imageURL.replace("\\","");
+
+                }catch (Exception e){
+                    Toast.makeText(AudioRecognition.this, "Please check your internet connection!", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+            }
+        };
+        LyricsRequest request = new LyricsRequest("http://eurus.96.lt/spotify/finder.php?keyword="+ID, responseListener);
+        request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
+        queue.add(request);
+
+
+    }
+
+
+
 }
 
 

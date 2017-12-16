@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -47,13 +48,15 @@ public class SongListRecyclerView extends AppCompatActivity {
     String createTableURL="http://eurus.96.lt/lyricsx_create_table.php";
     String backupToURL="http://eurus.96.lt/lyricsx_backup_to_table.php";
     String restoreFromURL="http://eurus.96.lt/lyricsx_restore_from_table.php";
+    String updateTableURL="http://eurus.96.lt/lyricsx_update_table.php";
     TextView empty;
     SharedPreferences prefs;
     RelativeLayout relativeLayout;
     ProgressDialog progressDialog;
     int prev_row,curr_row,count=0,i;
-    String song,artist,album,ID,has_lyric,DB_ID;
-    String [] songs,artists,albums,IDs,has_lyrics,DB_IDs;
+    String song,artist,album,ID,has_lyric,DB_ID,imageURL;
+    String [] songs,artists,albums,IDs,has_lyrics,DB_IDs,imageURLs;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -82,9 +85,23 @@ public class SongListRecyclerView extends AppCompatActivity {
             progressDialog.setMessage("Please wait a moment");
             progressDialog.setCancelable(true);
             progressDialog.show();
-            restoreFunc();
+
 
        // }
+            swipeRefreshLayout=(SwipeRefreshLayout)findViewById(R.id.swipeContainer);
+
+            swipeRefreshLayout.post(new Runnable() {
+                @Override
+                public void run() {
+                    restoreFunc();
+                }
+            });
+            swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    restoreFunc();
+                }
+            });
 
 
       /*  if(prefs.getString("listSong", null)!=null){
@@ -248,7 +265,7 @@ public class SongListRecyclerView extends AppCompatActivity {
     private void restoreFunc(){
 
 
-
+        listItems.clear();
 
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
@@ -265,6 +282,7 @@ public class SongListRecyclerView extends AppCompatActivity {
                          ID = jsonObject.getString("id");
                          has_lyric=jsonObject.getString("has_lyric");
                         DB_ID=jsonObject.getString("db_id");
+                        imageURL=jsonObject.getString("imageUrl");
                         int rows = jsonObject.getInt("count");
                       /*  if (rows == 1) {
                             Snackbar snackbar = Snackbar.make(relativeLayout,   "1 song has been restored!", Snackbar.LENGTH_LONG);
@@ -321,14 +339,39 @@ public class SongListRecyclerView extends AppCompatActivity {
                              IDs=ID.split("\\n\\n");
                              has_lyrics=has_lyric.split("\\n\\n");
                              DB_IDs=DB_ID.split("\\n\\n");
+                             imageURLs=imageURL.split("\\n\\n");
 
                             for(int i=0;i<songs.length;i++){
-                                ListItem listItem=new ListItem(songs[i],artists[i],albums[i],IDs[i],has_lyrics[i],DB_IDs[i]);
+                                ListItem listItem=new ListItem(songs[i],artists[i],albums[i],IDs[i],has_lyrics[i],DB_IDs[i],imageURLs[i]);
                                 Log.i("test",songs[i]+" "+artists[i]);
                                 listItems.add(listItem);
                             }
                             empty.setVisibility(View.GONE);
+
                             //listItems.clear();
+
+                        RecyclerViewAdapter.RecyclerViewLongClickListener longClickListener=new RecyclerViewAdapter.RecyclerViewLongClickListener() {
+                            @Override
+                            public void onLongClick(View v, final int position) {
+                                AlertDialog.Builder builder=new AlertDialog.Builder(getApplicationContext());
+                                builder.setMessage("Are you sure you want to delete this?")
+                                        .setCancelable(true)
+                                        .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                updateDB(position);
+                                            }
+                                        })
+                                        .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                return;
+                                            }
+                                        });
+                                builder.create().show();
+
+                            }
+                        };
                             RecyclerViewAdapter.RecyclerViewClickListener listener=new RecyclerViewAdapter.RecyclerViewClickListener() {
                                 @Override
                                 public void onClick(View view, int position) {
@@ -340,7 +383,9 @@ public class SongListRecyclerView extends AppCompatActivity {
 
 
 
-                            adapter=new RecyclerViewAdapter(listItems,getApplicationContext(),listener);
+
+
+                            adapter=new RecyclerViewAdapter(listItems,getApplicationContext(),listener,longClickListener);
                             recyclerView.setAdapter(adapter);
                        // }
 
@@ -366,6 +411,8 @@ public class SongListRecyclerView extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                adapter.notifyDataSetChanged();
+                swipeRefreshLayout.setRefreshing(false);
             }
         };
 
@@ -456,6 +503,28 @@ public class SongListRecyclerView extends AppCompatActivity {
         builder.create().show();
     }
 
+    private void updateDB(int pos){
+
+        Response.Listener<String> listener = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    if(new JSONObject(response).getBoolean("success"))
+                        restoreFunc();
+
+                } catch (Exception e) {
+
+                    e.printStackTrace();
+                }
+            }
+        };
+       // Log.i("All",title+" "+album+" "+artist+" "+trackID+" "+has_lyric);
+        //  Log.i("requests to server"," " +songs[i]);
+        BackupRestorePostRequest request = new BackupRestorePostRequest(updateTableURL, prefs.getString("username",null), DB_IDs[pos], listener);
+        request.setRetryPolicy(new DefaultRetryPolicy(DefaultRetryPolicy.DEFAULT_TIMEOUT_MS * 2, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        RequestQueue queue = Volley.newRequestQueue(SongListRecyclerView.this);
+        queue.add(request);
+    }
 
 
 }
