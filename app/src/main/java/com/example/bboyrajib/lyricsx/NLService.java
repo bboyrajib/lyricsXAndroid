@@ -248,8 +248,9 @@ public class NLService extends NotificationListenerService {
       // string=string.replaceAll("demo","_");
        string=string.replaceAll("reprise","_");
        string=string.replaceAll("unplugged","_");
+       string=string.replaceAll("acoustic","_");
        Log.i("SongString",string);
-       String arr[] = {string, string1};
+       String arr[] = {string, string1.toLowerCase()};
        string = "";
        string1 = "";
        return arr;

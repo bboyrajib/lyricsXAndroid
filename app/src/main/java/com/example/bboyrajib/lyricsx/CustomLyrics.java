@@ -89,8 +89,10 @@ public class CustomLyrics extends AppCompatActivity {
         }
         string = string.toLowerCase().replaceAll("remastered", "_");
         string = string.replaceAll("live", "_");
+        string=string.replaceAll("acoustic","_");
+        string=string.replaceAll("unplugged","_");
         Log.i("SongString", string);
-        String arr[] = {string, string1};
+        String arr[] = {string, string1.toLowerCase()};
         string = "";
         string1 = "";
         return arr;

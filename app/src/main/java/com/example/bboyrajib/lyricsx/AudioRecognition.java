@@ -434,9 +434,10 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                 string1 += "_";
         }
         string = string.toLowerCase().replaceAll("remastered", "_");
-        string = string.replaceAll("live", "_");
+      //  string = string.replaceAll("\\slive", "_");
+        string=string.replaceAll("acoustic","_");
         Log.i("SongString", string);
-        String arr[] = {string, string1};
+        String arr[] = {string, string1.toLowerCase()};
         string = "";
         string1 = "";
         return arr;
