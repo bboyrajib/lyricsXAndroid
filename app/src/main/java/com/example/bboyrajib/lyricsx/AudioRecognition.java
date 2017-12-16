@@ -452,12 +452,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
             this.mClient = null;
         }
     }
-    @Override
-    public void onBackPressed() {
 
-        startActivity(new Intent(AudioRecognition.this,MainActivity.class));
-        AudioRecognition.this.finish();
-    }
 
     public void pickUserAccount() {
     /*This will list all available accounts on device without any filtering*/

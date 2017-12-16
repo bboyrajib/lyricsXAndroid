@@ -75,10 +75,10 @@ public class SongListRecyclerView extends AppCompatActivity {
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 
-      /*  if(!prefs.getBoolean("isAccountSelected",false)) {
-            pickUserAccount();
+        if(!prefs.getBoolean("isAccountSelected",false)) {
+            return;
 
-        }*/
+        }
       //  if(!prefs.getBoolean("isRestored",false)){
             progressDialog = new ProgressDialog(SongListRecyclerView.this);
             progressDialog.setTitle("Loading your search results!");
@@ -389,6 +389,9 @@ public class SongListRecyclerView extends AppCompatActivity {
                             recyclerView.setAdapter(adapter);
                        // }
 
+                        adapter.notifyDataSetChanged();
+                        swipeRefreshLayout.setRefreshing(false);
+
 
 
                         //Update RecyclerView here
@@ -411,8 +414,7 @@ public class SongListRecyclerView extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                adapter.notifyDataSetChanged();
-                swipeRefreshLayout.setRefreshing(false);
+
             }
         };
 
