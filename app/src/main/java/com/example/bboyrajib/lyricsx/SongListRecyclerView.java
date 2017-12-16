@@ -353,7 +353,7 @@ public class SongListRecyclerView extends AppCompatActivity {
                         RecyclerViewAdapter.RecyclerViewLongClickListener longClickListener=new RecyclerViewAdapter.RecyclerViewLongClickListener() {
                             @Override
                             public void onLongClick(View v, final int position) {
-                                AlertDialog.Builder builder=new AlertDialog.Builder(getApplicationContext());
+                                AlertDialog.Builder builder=new AlertDialog.Builder(SongListRecyclerView.this);
                                 builder.setMessage("Are you sure you want to delete this?")
                                         .setCancelable(true)
                                         .setPositiveButton("YES", new DialogInterface.OnClickListener() {
