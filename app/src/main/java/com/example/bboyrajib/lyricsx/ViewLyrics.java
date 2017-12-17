@@ -2,8 +2,10 @@ package com.example.bboyrajib.lyricsx;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -12,11 +14,20 @@ import com.android.volley.Response;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ViewLyrics extends AppCompatActivity {
 
     TextView lyrics;
     ProgressDialog progressDialog;
+
+    String artist,song;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,8 +35,8 @@ public class ViewLyrics extends AppCompatActivity {
         setContentView(R.layout.activity_view_lyrics);
 
         Intent intent=getIntent();
-        String song=intent.getStringExtra("clickSong");
-        String artist=intent.getStringExtra("clickArtist");
+         song=intent.getStringExtra("clickSong");
+         artist=intent.getStringExtra("clickArtist");
 
         String[] arr=extract(song+" - "+artist,artist);
 
@@ -97,10 +108,16 @@ public class ViewLyrics extends AppCompatActivity {
             @Override
             public void onResponse(String response) {
                 try {
-                     progressDialog.dismiss();
+
                     JSONObject jsonObject = new JSONObject(response);
                     String lyric = jsonObject.getString("lyric");
-                    lyrics.setText(ticker.toUpperCase() + "\n\n" + lyric);
+                    if(lyric.isEmpty()){
+                        new doIt().execute();
+                    }
+                    else {
+                        progressDialog.dismiss();
+                        lyrics.setText(ticker.toUpperCase() + "\n\n" + lyric);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     // Toast.makeText(MainActivity.this, "Catch: 404", Toast.LENGTH_SHORT).show();
@@ -110,5 +127,63 @@ public class ViewLyrics extends AppCompatActivity {
         LyricsRequest request = new LyricsRequest(URL, responseListener);
         RequestQueue queue = Volley.newRequestQueue(ViewLyrics.this);
         queue.add(request);
+    }
+
+    public String remove_special(String c){
+
+        Pattern pt = Pattern.compile("[^a-zA-Z0-9]");
+        Matcher match= pt.matcher(c);
+        while(match.find())
+        {
+            String s= match.group();
+            c=c.replaceAll("\\"+s, "");
+        }
+        return c;
+    }
+
+    public class doIt extends AsyncTask<Void,Void,Void> {
+
+        String words;
+        @Override
+        protected Void doInBackground(Void... params) {
+
+
+
+            try {
+                if(artist==null)
+                    return null;
+                Document document= Jsoup.connect("http://azlyrics.com/lyrics/"+remove_special(artist).toLowerCase()+"/"+remove_special(song).toLowerCase()+".html").get();
+                Elements divs=document.select("div").not("[class]");
+                // Log.i("Tag",divs.get(1).html().toString()+" ");
+
+
+                words=divs.get(1).html().toString();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                words="";
+            }
+
+
+            return null;
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            String ticker=song+" - "+artist;
+            progressDialog.dismiss();
+
+            if(words==null)
+                return;
+
+           // sendNotification();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
+                lyrics.setText(ticker.toUpperCase()+"\n\n"+ Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT));
+            else
+                lyrics.setText(ticker.toUpperCase()+"\n\n"+Html.fromHtml(words));
+        }
     }
 }

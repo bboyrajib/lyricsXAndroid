@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -22,6 +23,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -36,6 +38,13 @@ import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.AccountPicker;
 
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,6 +65,11 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+
+        if ((getIntent().getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) != 0) {
+            finish();
+            return;
+        }
 
 
 
@@ -104,7 +118,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -204,13 +223,21 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject jsonObject = new JSONObject(response);
                     String lyric = jsonObject.getString("lyric");
                     if (lyric.isEmpty()) {
-                        lyrics.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\nSorry! No Lyrics Found\nTry using Manual Search");
-                        return;
+                      //  String words;
+
+
+                        new doIt().execute();
+
+
+
+
                     }
+                    else {
 
                         sendNotification();
 
-                    lyrics.setText(ticker.toUpperCase() + "\n\n" + lyric);
+                        lyrics.setText(ticker.toUpperCase() + "\n\n" + lyric);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                    // Toast.makeText(MainActivity.this, "Catch: 404", Toast.LENGTH_SHORT).show();
@@ -308,6 +335,67 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
         super.onDestroy();
     }
+
+    public String remove_special(String c){
+
+        Pattern pt = Pattern.compile("[^a-zA-Z0-9]");
+        Matcher match= pt.matcher(c);
+        while(match.find())
+        {
+            String s= match.group();
+            c=c.replaceAll("\\"+s, "");
+        }
+        return c;
+    }
+
+    public class doIt extends AsyncTask<Void,Void,Void> {
+
+        String words;
+        @Override
+        protected Void doInBackground(Void... params) {
+
+
+
+            try {
+                if(artist==null)
+                    return null;
+                Document document= Jsoup.connect("http://azlyrics.com/lyrics/"+remove_special(artist).toLowerCase()+"/"+remove_special(song).toLowerCase()+".html").get();
+                Elements divs=document.select("div").not("[class]");
+                // Log.i("Tag",divs.get(1).html().toString()+" ");
+
+
+                words=divs.get(1).html().toString();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                words="";
+            }
+
+
+            return null;
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            if(words==null)
+                return;
+
+            else if(words.isEmpty()){
+               lyrics.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
+                return;
+            }
+            sendNotification();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
+                lyrics.setText(ticker.toUpperCase()+"\n\n"+Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT));
+            else
+                lyrics.setText(ticker.toUpperCase()+"\n\n"+Html.fromHtml(words));
+        }
+    }
+
+
 
 
 }

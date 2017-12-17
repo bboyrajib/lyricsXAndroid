@@ -1,13 +1,19 @@
 package com.example.bboyrajib.lyricsx;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 import com.acrcloud.rec.sdk.ACRCloudConfig;
 import com.acrcloud.rec.sdk.ACRCloudClient;
@@ -24,11 +30,13 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -389,10 +397,10 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                     JSONObject jsonObject = new JSONObject(response);
                     String lyric = jsonObject.getString("lyric");
                     if (lyric.isEmpty()) {
-                        mResult.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
-                        has_lyric="0";
-                        progressDialog.dismiss();
-                        backUpMyData();
+                       // mResult.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
+                       // has_lyric="0";
+                        new doIt().execute();
+
                         return;
                     }
                     has_lyric="1";
@@ -617,6 +625,76 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
     }
 
+    public String remove_special(String c){
+
+        Pattern pt = Pattern.compile("[^a-zA-Z0-9]");
+        Matcher match= pt.matcher(c);
+        while(match.find())
+        {
+            String s= match.group();
+            c=c.replaceAll("\\"+s, "");
+        }
+        return c;
+    }
+
+    public class doIt extends AsyncTask<Void,Void,Void> {
+
+        String words;
+        @Override
+        protected Void doInBackground(Void... params) {
+
+
+
+            try {
+                if(artist==null)
+                    return null;
+                Document document= Jsoup.connect("http://azlyrics.com/lyrics/"+remove_special(artist).toLowerCase()+"/"+remove_special(title).toLowerCase()+".html").get();
+                Elements divs=document.select("div").not("[class]");
+                // Log.i("Tag",divs.get(1).html().toString()+" ");
+
+
+                words=divs.get(1).html().toString();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                words="";
+            }
+
+
+            return null;
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            String ticker=title+" - "+artist;
+            progressDialog.dismiss();
+
+
+            if(words==null) {
+                has_lyric="0";
+                return;
+            }
+
+            else if(words.isEmpty()){
+                has_lyric="0";
+                mResult.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
+                backUpMyData();
+                return;
+            }
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
+                mResult.setText(ticker.toUpperCase()+"\n\n"+ Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT));
+            else
+                mResult.setText(ticker.toUpperCase()+"\n\n"+Html.fromHtml(words));
+
+            has_lyric="1";
+
+            backUpMyData();
+        }
+    }
 
 
 }
