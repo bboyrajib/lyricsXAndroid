@@ -6,6 +6,7 @@ package com.example.bboyrajib.lyricsx;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -14,25 +15,40 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.v7.app.NotificationCompat;
+import android.text.Html;
 import android.util.Log;
 import android.support.v4.content.LocalBroadcastManager;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
+import java.io.IOException;
 import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class NLService extends NotificationListenerService {
 
     Context context;
-    String pack,ticker,title,text;
+    String pack,ticker,title,text,artist,song;
     //private NLServiceReceiver nlservicereciver;
     private boolean mInitialized;
     SharedPreferences prefs;
@@ -53,7 +69,12 @@ public class NLService extends NotificationListenerService {
 
     }
 
-   /* @Override
+    @Override
+    public int onStartCommand(Intent intent,   int flags, int startId) {
+        return START_STICKY;
+    }
+
+    /* @Override
     public IBinder onBind(Intent intent) {
         Log.i("Bind","Bind");
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -97,7 +118,7 @@ public class NLService extends NotificationListenerService {
 //            Log.i("Title",title);
             Log.i("Text", text);
             String arr[]=extract(ticker,text);
-
+            song=arr[0];artist=arr[1];
             Intent msgrcv = new Intent("Msg");
             msgrcv.putExtra("package", pack);
             msgrcv.putExtra("ticker", ticker);
@@ -113,6 +134,8 @@ public class NLService extends NotificationListenerService {
             }
 
             LocalBroadcastManager.getInstance(context).sendBroadcast(msgrcv);
+            getLyricsFunc(getUrl(arr[0],arr[1]),arr[0],arr[1],ticker);
+          //  new doIt().execute();
 
         }
         else if(pack.equals("com.google.android.music")){
@@ -125,6 +148,7 @@ public class NLService extends NotificationListenerService {
             Log.i("Text", text);
 
             String arr[]=extract(title+" - "+text,text);
+            song=arr[0];artist=arr[1];
 
             Intent msgrcv = new Intent("Msg");
             msgrcv.putExtra("package", pack);
@@ -141,7 +165,11 @@ public class NLService extends NotificationListenerService {
             }
 
             LocalBroadcastManager.getInstance(context).sendBroadcast(msgrcv);
+            getLyricsFunc(getUrl(arr[0],arr[1]),arr[0],arr[1],ticker);
+          //  new doIt().execute();
         }
+
+
 
     }
 
@@ -150,6 +178,59 @@ public class NLService extends NotificationListenerService {
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Log.i("Msg","Notification Removed");
 
+    }
+
+    private String getUrl(String song, String artist) {
+        String Url = "http://lyricsx.herokuapp.com/api/find/";
+
+
+        //    Toast.makeText(this, Url, Toast.LENGTH_SHORT).show();
+        Log.i("Url",Url+artist+"/"+song);
+        return Url+artist+"/"+song;
+
+
+    }
+
+    private void getLyricsFunc(String URL, final String song, final String artist, final String ticker) {
+
+
+       /* progressDialog=new ProgressDialog(MainActivity.this);
+        progressDialog.setTitle("Fetching");
+        progressDialog.setMessage("Please wait a moment");
+        progressDialog.setCancelable(false);
+        progressDialog.show();*/
+        Response.Listener<String> responseListener = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    // progressDialog.dismiss();
+                    JSONObject jsonObject = new JSONObject(response);
+                    String lyric = jsonObject.getString("lyric");
+                    if (lyric.isEmpty()) {
+                        //  String words;
+
+
+                        new doIt().execute();
+
+
+
+
+                    }
+                    else {
+
+                        sendNotification();
+                        SharedPreferences.Editor editor=prefs.edit();
+                        editor.putString("lyrics",ticker.toUpperCase() + "\n\n" + lyric).apply();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // Toast.makeText(MainActivity.this, "Catch: 404", Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+        LyricsRequest request = new LyricsRequest(URL, responseListener);
+        RequestQueue queue = Volley.newRequestQueue(NLService.this);
+        queue.add(request);
     }
 
     /*class NLServiceReceiver extends BroadcastReceiver {
@@ -255,5 +336,99 @@ public class NLService extends NotificationListenerService {
        string1 = "";
        return arr;
    }
+    public String remove_special(String c){
+
+        Pattern pt = Pattern.compile("[^a-zA-Z0-9]");
+        Matcher match= pt.matcher(c);
+        while(match.find())
+        {
+            String s= match.group();
+            c=c.replaceAll("\\"+s, "");
+        }
+        return c;
+    }
+    public class doIt extends AsyncTask<Void,Void,Void> {
+
+        String words;
+        @Override
+        protected Void doInBackground(Void... params) {
+
+
+
+            try {
+                if(artist==null)
+                    return null;
+                Document document= Jsoup.connect("http://azlyrics.com/lyrics/"+remove_special(artist).toLowerCase()+"/"+remove_special(song).toLowerCase()+".html").get();
+                Elements divs=document.select("div").not("[class]");
+                // Log.i("Tag",divs.get(1).html().toString()+" ");
+
+
+                words=divs.get(1).html().toString();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                words="";
+            }
+
+
+            return null;
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            if(words==null)
+                return;
+
+            else if(words.isEmpty()){
+                SharedPreferences.Editor editor=prefs.edit();
+                editor.putString("lyrics","\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
+                editor.apply();
+                return;
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString("lyrics",ticker.toUpperCase() + "\n\n" + Html.fromHtml(words, Html.FROM_HTML_MODE_COMPACT)).apply();
+            }
+            else {
+                SharedPreferences.Editor editor=prefs.edit();
+                editor.putString("lyrics",ticker.toUpperCase() + "\n\n" + Html.fromHtml(words)).apply();
+            }
+            sendNotification();
+
+
+        }
+    }
+
+    private void sendNotification() {
+
+        // Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
+        NotificationCompat.Builder builder = (NotificationCompat.Builder) new NotificationCompat.Builder(this)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("LyricsX")
+                .setContentText("Tap to view lyrics")
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setVisibility(1)
+                .setAutoCancel(true);
+
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+         notificationIntent.putExtra("lyrics",prefs.getString("lyrics",null));
+        //  notificationIntent.putExtra("artist",artist);
+        //  notificationIntent.putExtra("tikcer",ticker);
+
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        //0);
+        builder.setContentIntent(contentIntent);
+
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        manager.notify(0, builder.build());
+
+
+        //updateMyActivity(this,body,title);
+    }
 
 }

@@ -66,10 +66,15 @@ public class MainActivity extends AppCompatActivity {
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 
+        NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
+
         if ((getIntent().getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) != 0) {
             finish();
             return;
         }
+        if(prefs.getString("lyrics",null)!=null)
+            lyrics.setText(prefs.getString("lyrics",null));
 
 
 
@@ -234,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     else {
 
-                        sendNotification();
+                      //  sendNotification();
 
                         lyrics.setText(ticker.toUpperCase() + "\n\n" + lyric);
                     }
@@ -387,7 +392,7 @@ public class MainActivity extends AppCompatActivity {
                lyrics.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
                 return;
             }
-            sendNotification();
+           // sendNotification();
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
                 lyrics.setText(ticker.toUpperCase()+"\n\n"+Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT));
             else
