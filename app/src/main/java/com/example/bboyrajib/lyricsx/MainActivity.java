@@ -91,7 +91,8 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }*/
                 if (song==null||ticker==null) {
-                    getLyricsFunc(getUrl(prefs.getString("song",null),prefs.getString("artist",null)),prefs.getString("song",null),prefs.getString("artist",null),prefs.getString("ticker",null));
+                  //  getLyricsFunc(getUrl(prefs.getString("song",null),prefs.getString("artist",null)),prefs.getString("song",null),prefs.getString("artist",null),prefs.getString("ticker",null));
+                    lyrics.setText(prefs.getString("lyrics",null));
                     return;
                 }
 
@@ -126,6 +127,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+
+
         NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
     }
@@ -190,6 +194,12 @@ public class MainActivity extends AppCompatActivity {
                 getLyricsFunc(getUrl(data1,data2));
                 return;
             }*/
+         //   Log.i("onRec:",""+prefs.getString("lyrics",null));
+         //   if(prefs.getString("lyrics",null)!=null)
+             //   lyrics.setText(intent.getStringExtra("lyrics"));
+
+
+
 
 
             getLyricsFunc(getUrl(song,artist),song,artist,ticker);
@@ -231,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                       //  String words;
 
 
-                        new doIt().execute();
+                        new doIt().execute(ticker);
 
 
 
@@ -353,13 +363,13 @@ public class MainActivity extends AppCompatActivity {
         return c;
     }
 
-    public class doIt extends AsyncTask<Void,Void,Void> {
+    public class doIt extends AsyncTask<String,Void,Void> {
 
-        String words;
+        String words,tick;
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Void doInBackground(String... params) {
 
-
+            tick=params[0];
 
             try {
                 if(artist==null)
@@ -389,14 +399,14 @@ public class MainActivity extends AppCompatActivity {
                 return;
 
             else if(words.isEmpty()){
-               lyrics.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
+               lyrics.setText("\n\n\n\n\n\n\n\n\n\n"+tick.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
                 return;
             }
            // sendNotification();
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
-                lyrics.setText(ticker.toUpperCase()+"\n\n"+Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT));
+                lyrics.setText(tick.toUpperCase()+"\n\n"+Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT));
             else
-                lyrics.setText(ticker.toUpperCase()+"\n\n"+Html.fromHtml(words));
+                lyrics.setText(tick.toUpperCase()+"\n\n"+Html.fromHtml(words));
         }
     }
 

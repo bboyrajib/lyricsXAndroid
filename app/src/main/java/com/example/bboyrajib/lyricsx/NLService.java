@@ -47,6 +47,7 @@ import java.util.regex.Pattern;
 
 public class NLService extends NotificationListenerService {
 
+    Intent msgrcv;
     Context context;
     String pack,ticker,title,text,artist,song;
     //private NLServiceReceiver nlservicereciver;
@@ -119,7 +120,7 @@ public class NLService extends NotificationListenerService {
             Log.i("Text", text);
             String arr[]=extract(ticker,text);
             song=arr[0];artist=arr[1];
-            Intent msgrcv = new Intent("Msg");
+            msgrcv = new Intent("Msg");
             msgrcv.putExtra("package", pack);
             msgrcv.putExtra("ticker", ticker);
             msgrcv.putExtra("song", arr[0]);
@@ -150,7 +151,7 @@ public class NLService extends NotificationListenerService {
             String arr[]=extract(title+" - "+text,text);
             song=arr[0];artist=arr[1];
 
-            Intent msgrcv = new Intent("Msg");
+            msgrcv = new Intent("Msg");
             msgrcv.putExtra("package", pack);
             msgrcv.putExtra("ticker", title+" - "+text);
             msgrcv.putExtra("song", arr[0]);
@@ -165,7 +166,7 @@ public class NLService extends NotificationListenerService {
             }
 
             LocalBroadcastManager.getInstance(context).sendBroadcast(msgrcv);
-            getLyricsFunc(getUrl(arr[0],arr[1]),arr[0],arr[1],ticker);
+            getLyricsFunc(getUrl(arr[0],arr[1]),arr[0],arr[1],title + " - " + text);
           //  new doIt().execute();
         }
 
@@ -210,17 +211,19 @@ public class NLService extends NotificationListenerService {
                         //  String words;
 
 
-                        new doIt().execute();
+                        new doIt().execute(ticker);
 
 
 
 
                     }
                     else {
-
-                        sendNotification();
+                        //if(Utils.isAppIsInBackground(getApplicationContext())) Log.i("TAG","bg");
+                            sendNotification();
                         SharedPreferences.Editor editor=prefs.edit();
                         editor.putString("lyrics",ticker.toUpperCase() + "\n\n" + lyric).apply();
+                       // Log.i("ticker",ticker+"");
+                       // msgrcv.putExtra("lyrics",ticker.toUpperCase() + "\n\n" + lyric);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -347,13 +350,13 @@ public class NLService extends NotificationListenerService {
         }
         return c;
     }
-    public class doIt extends AsyncTask<Void,Void,Void> {
+    public class doIt extends AsyncTask<String,Void,Void> {
 
-        String words;
+        String words,tick;
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Void doInBackground(String... params) {
 
-
+             tick=params[0];
 
             try {
                 if(artist==null)
@@ -384,19 +387,23 @@ public class NLService extends NotificationListenerService {
 
             else if(words.isEmpty()){
                 SharedPreferences.Editor editor=prefs.edit();
-                editor.putString("lyrics","\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
+                editor.putString("lyrics","\n\n\n\n\n\n\n\n\n\n"+tick.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
                 editor.apply();
+               // msgrcv.putExtra("lyrics","\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
                 return;
             }
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 SharedPreferences.Editor editor = prefs.edit();
-                editor.putString("lyrics",ticker.toUpperCase() + "\n\n" + Html.fromHtml(words, Html.FROM_HTML_MODE_COMPACT)).apply();
+                editor.putString("lyrics",tick.toUpperCase() + "\n\n" + Html.fromHtml(words, Html.FROM_HTML_MODE_COMPACT)).apply();
+               // msgrcv.putExtra("lyrics",ticker.toUpperCase() + "\n\n" + Html.fromHtml(words, Html.FROM_HTML_MODE_COMPACT));
             }
             else {
                 SharedPreferences.Editor editor=prefs.edit();
-                editor.putString("lyrics",ticker.toUpperCase() + "\n\n" + Html.fromHtml(words)).apply();
+                editor.putString("lyrics",tick.toUpperCase() + "\n\n" + Html.fromHtml(words)).apply();
+               // msgrcv.putExtra("lyrics",ticker.toUpperCase() + "\n\n" + Html.fromHtml(words));
             }
-            sendNotification();
+            //if(Utils.isAppIsInBackground(NLService.this)) Log.i("TAG","bg");
+                sendNotification();
 
 
         }
