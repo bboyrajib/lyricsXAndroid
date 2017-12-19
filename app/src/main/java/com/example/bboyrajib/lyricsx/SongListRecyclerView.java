@@ -1,6 +1,7 @@
 package com.example.bboyrajib.lyricsx;
 
 import android.accounts.AccountManager;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -27,6 +28,7 @@ import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -411,7 +413,17 @@ public class SongListRecyclerView extends AppCompatActivity {
                                                 return;
                                             }
                                         });
-                                builder.create().show();
+                                final AlertDialog alertDialog=builder.create();
+                                alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                                    @Override
+                                    public void onShow(DialogInterface dialog) {
+                                        Button pos=alertDialog.getButton(Dialog.BUTTON_POSITIVE);
+                                        pos.setTypeface(typeface);
+                                        Button neg=alertDialog.getButton(Dialog.BUTTON_NEGATIVE);
+                                        neg.setTypeface(typeface);
+                                    }
+                                });
+                                alertDialog.show();
 
                             }
                         };
@@ -549,7 +561,19 @@ public class SongListRecyclerView extends AppCompatActivity {
                     });
         }
 
-        builder.create().show();
+
+
+        final AlertDialog alertDialog=builder.create();
+        alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                Button pos=alertDialog.getButton(Dialog.BUTTON_POSITIVE);
+                pos.setTypeface(typeface);
+                Button neg=alertDialog.getButton(Dialog.BUTTON_NEGATIVE);
+                neg.setTypeface(typeface);
+            }
+        });
+        alertDialog.show();
     }
 
     private void updateDB(int pos){
