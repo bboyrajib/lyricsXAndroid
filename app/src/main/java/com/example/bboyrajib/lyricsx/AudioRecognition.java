@@ -24,6 +24,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.AccountPicker;
+import com.squareup.picasso.Picasso;
 
 import android.accounts.AccountManager;
 import android.app.Activity;
@@ -650,7 +651,8 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                      imageURL=jsonObject.getString("success");
                      imageURL=imageURL.replace("\\","");
 
-                    new doImg().execute();
+                  //  new doImg().execute();
+                    Picasso.with(AudioRecognition.this).load(imageURL).into(imageView);
 
 
                 }catch (Exception e){
@@ -739,39 +741,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         }
     }
 
-    public class doImg extends AsyncTask<Void,Void,Void> {
 
-        Bitmap bmp=null ;
-        @Override
-        protected Void doInBackground(Void... params) {
-
-
-
-            try {
-
-
-                InputStream in = new java.net.URL(imageURL).openStream();
-                bmp = BitmapFactory.decodeStream(in);
-
-
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            }
-
-
-            return null;
-        }
-
-        @Override
-        @SuppressWarnings("deprecation")
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-
-            imageView.setImageBitmap(bmp);
-
-        }
-    }
 
 
 

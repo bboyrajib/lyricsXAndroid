@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.Volley;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -144,7 +145,8 @@ public class ViewLyrics extends AppCompatActivity {
             @Override
             public void onResponse(String response) {
                 try {
-                    new doImg().execute();
+                    //new doImg().execute();
+                    Picasso.with(ViewLyrics.this).load(imageURL).into(imageView);
                     JSONObject jsonObject = new JSONObject(response);
                     String lyric = jsonObject.getString("lyric");
                     if(lyric.isEmpty()){
@@ -228,37 +230,5 @@ public class ViewLyrics extends AppCompatActivity {
         }
     }
 
-    public class doImg extends AsyncTask<Void,Void,Void> {
 
-        Bitmap bmp=null ;
-        @Override
-        protected Void doInBackground(Void... params) {
-
-
-
-            try {
-
-
-                InputStream in = new java.net.URL(imageURL).openStream();
-                bmp = BitmapFactory.decodeStream(in);
-
-
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            }
-
-
-            return null;
-        }
-
-        @Override
-        @SuppressWarnings("deprecation")
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-
-            imageView.setImageBitmap(bmp);
-
-        }
-    }
 }
