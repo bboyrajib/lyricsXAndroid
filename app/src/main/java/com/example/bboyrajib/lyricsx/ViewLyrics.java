@@ -2,6 +2,8 @@ package com.example.bboyrajib.lyricsx;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
@@ -12,6 +14,7 @@ import android.text.Html;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -25,6 +28,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,17 +37,21 @@ public class ViewLyrics extends AppCompatActivity {
     TextView lyrics;
     ProgressDialog progressDialog;
 
-    String artist,song;
+    String artist,song,imageURL;
     ProgressBar progressBar;
+    ImageView imageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_lyrics);
 
+        imageView=(ImageView)findViewById(R.id.cardImageVL);
+
         Intent intent=getIntent();
          song=intent.getStringExtra("clickSong");
          artist=intent.getStringExtra("clickArtist");
+         imageURL=intent.getStringExtra("imageURL");
 
         String[] arr=extract(song+" - "+artist,artist);
 
@@ -136,7 +144,7 @@ public class ViewLyrics extends AppCompatActivity {
             @Override
             public void onResponse(String response) {
                 try {
-
+                    new doImg().execute();
                     JSONObject jsonObject = new JSONObject(response);
                     String lyric = jsonObject.getString("lyric");
                     if(lyric.isEmpty()){
@@ -217,6 +225,40 @@ public class ViewLyrics extends AppCompatActivity {
                 lyrics.setText(ticker.toUpperCase()+"\n\n"+ Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT));
             else
                 lyrics.setText(ticker.toUpperCase()+"\n\n"+Html.fromHtml(words));
+        }
+    }
+
+    public class doImg extends AsyncTask<Void,Void,Void> {
+
+        Bitmap bmp=null ;
+        @Override
+        protected Void doInBackground(Void... params) {
+
+
+
+            try {
+
+
+                InputStream in = new java.net.URL(imageURL).openStream();
+                bmp = BitmapFactory.decodeStream(in);
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            }
+
+
+            return null;
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            imageView.setImageBitmap(bmp);
+
         }
     }
 }

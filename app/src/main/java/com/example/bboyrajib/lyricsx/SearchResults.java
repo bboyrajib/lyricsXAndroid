@@ -163,6 +163,7 @@ public class SearchResults extends AppCompatActivity {
                                 try {
                                     intent.putExtra("clickSong",tracks.get(position).toString());
                                     intent.putExtra("clickArtist",artists.get(position).toString());
+                                    intent.putExtra("imageURL",images.get(position).toString());
                                     startActivity(intent);
                                 } catch (JSONException e) {
                                     e.printStackTrace();

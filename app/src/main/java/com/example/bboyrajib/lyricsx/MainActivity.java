@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(onNotice, new IntentFilter("Msg"));
         lyrics = (TextView) findViewById(R.id.lyricsText);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
         setSupportActionBar(toolbar);
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -78,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         lyrics.setTypeface(typeface);
         TextView myTitle = (TextView) toolbar.getChildAt(0);
         myTitle.setTypeface(typeface);
+
 
         NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();

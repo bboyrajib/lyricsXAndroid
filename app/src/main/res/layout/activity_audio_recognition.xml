@@ -23,7 +23,12 @@
         app:cardElevation="5dp"
         android:layout_margin="10dp"
         android:id="@+id/cv">
-
+        <ImageView
+            android:id="@+id/cardImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:alpha="0.1"/>
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -42,7 +47,8 @@
             android:textColor="#479194"
             android:textAlignment="center"
             android:text="\n\n\n\n\n\n\n\n\n\nPress Left Button to start listening..\n\nYour lyrics will appear here"
-            android:textSize="17dp"
+            android:textSize="19dp"
+            android:textStyle="bold"
             android:layout_marginTop="10dp"
             android:layout_marginLeft="12dp"
             android:layout_marginRight="12dp"

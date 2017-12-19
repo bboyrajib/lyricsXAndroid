@@ -30,6 +30,12 @@
         android:layout_margin="10dp"
         app:cardBackgroundColor="#ffffff"
         >
+        <ImageView
+            android:id="@+id/cardImageVL"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:alpha="0.1"/>
 
     <ScrollView
         android:layout_width="match_parent"

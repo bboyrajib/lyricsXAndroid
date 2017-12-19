@@ -430,7 +430,7 @@ public class SongListRecyclerView extends AppCompatActivity {
                             RecyclerViewAdapter.RecyclerViewClickListener listener=new RecyclerViewAdapter.RecyclerViewClickListener() {
                                 @Override
                                 public void onClick(View view, int position) {
-                                    createAlertDialog(has_lyrics[position],IDs[position],songs[position],artists[position],position);
+                                    createAlertDialog(has_lyrics[position],IDs[position],songs[position],artists[position],position,imageURLs[position]);
                                 }
 
 
@@ -489,7 +489,7 @@ public class SongListRecyclerView extends AppCompatActivity {
         return false;
     }
 
-    private void createAlertDialog(String has_lyric, String has_ID, final String song, final String artist, final int position){
+    private void createAlertDialog(String has_lyric, String has_ID, final String song, final String artist, final int position, final String URL){
 
         CharSequence cs=new String(songs[position]);
         SpannableString spannableString=Utils.typefaceColor("#479194",cs);
@@ -530,6 +530,7 @@ public class SongListRecyclerView extends AppCompatActivity {
                             Intent intent=new Intent(SongListRecyclerView.this,ViewLyrics.class);
                             intent.putExtra("clickSong",song);
                             intent.putExtra("clickArtist",artist);
+                            intent.putExtra("imageURL",URL);
                             startActivity(intent);
                         }
                     });
@@ -556,6 +557,7 @@ public class SongListRecyclerView extends AppCompatActivity {
                             Intent intent=new Intent(SongListRecyclerView.this,ViewLyrics.class);
                             intent.putExtra("clickSong",song);
                             intent.putExtra("clickArtist",artist);
+                            intent.putExtra("imageURL",URL);
                             startActivity(intent);
                         }
                     });

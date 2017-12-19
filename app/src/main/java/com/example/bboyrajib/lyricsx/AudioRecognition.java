@@ -2,6 +2,7 @@ package com.example.bboyrajib.lyricsx;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -29,6 +30,8 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
@@ -38,6 +41,7 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
@@ -45,6 +49,7 @@ import android.util.TypedValue;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -78,6 +83,8 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
 
     SharedPreferences prefs;
+    CardView cardView;
+    ImageView imageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,7 +102,8 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         relativeLayout=(RelativeLayout)findViewById(R.id.rel);
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         mResult = (TextView) findViewById(R.id.recognize);
-
+        cardView=(CardView)findViewById(R.id.cv);
+        imageView=(ImageView)findViewById(R.id.cardImage);
 
 
 
@@ -130,6 +138,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
       //
         else {
+            imageView.setImageResource(0);
             Toast.makeText(this, "Initializing!", Toast.LENGTH_SHORT).show();
 
 
@@ -216,8 +225,10 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
             @Override
             public void onClick(View arg0) {
-                if (start())
+                if (start()) {
+                    imageView.setImageResource(0);
                     Toast.makeText(AudioRecognition.this, "Listening!", Toast.LENGTH_LONG).show();
+                }
             }
         });
             listbtn.setOnClickListener(new View.OnClickListener() {
@@ -639,6 +650,9 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                      imageURL=jsonObject.getString("success");
                      imageURL=imageURL.replace("\\","");
 
+                    new doImg().execute();
+
+
                 }catch (Exception e){
                     Toast.makeText(AudioRecognition.this, "Please check your internet connection!", Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
@@ -724,6 +738,41 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
             backUpMyData();
         }
     }
+
+    public class doImg extends AsyncTask<Void,Void,Void> {
+
+        Bitmap bmp=null ;
+        @Override
+        protected Void doInBackground(Void... params) {
+
+
+
+            try {
+
+
+                InputStream in = new java.net.URL(imageURL).openStream();
+                bmp = BitmapFactory.decodeStream(in);
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            }
+
+
+            return null;
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            imageView.setImageBitmap(bmp);
+
+        }
+    }
+
 
 
 }
