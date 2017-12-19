@@ -206,8 +206,10 @@ public class ViewLyrics extends AppCompatActivity {
            // progressDialog.dismiss();
             progressBar.setVisibility(View.INVISIBLE);
 
-            if(words==null)
-                return;
+            if(words==null || words.isEmpty()){
+                lyrics.setText("\n\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics found for this song");
+            }
+
 
            // sendNotification();
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
