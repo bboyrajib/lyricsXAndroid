@@ -208,6 +208,7 @@ public class ViewLyrics extends AppCompatActivity {
 
             if(words==null || words.isEmpty()){
                 lyrics.setText("\n\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics found for this song");
+                return;
             }
 
 
