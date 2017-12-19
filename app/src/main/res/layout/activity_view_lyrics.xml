@@ -6,6 +6,31 @@
     android:layout_height="match_parent"
     tools:context="com.example.bboyrajib.lyricsx.ViewLyrics">
 
+    <ProgressBar
+        android:id="@+id/progressbarVL"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:max="100"
+        android:backgroundTint="#ffffff"
+
+        android:indeterminateTint="#1a09d6"
+        android:layout_marginTop="-6dp"/>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="1dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        app:cardCornerRadius="10dp"
+        app:cardElevation="5dp"
+        android:layout_margin="10dp"
+        app:cardBackgroundColor="#ffffff"
+        >
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -21,5 +46,7 @@
             android:padding="3dp"/>
 
     </ScrollView>
+
+    </android.support.v7.widget.CardView>
 
 </RelativeLayout>

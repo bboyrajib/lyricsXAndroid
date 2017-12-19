@@ -30,14 +30,18 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -91,6 +95,27 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         relativeLayout=(RelativeLayout)findViewById(R.id.rel);
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         mResult = (TextView) findViewById(R.id.recognize);
+
+
+
+
+        Typeface typeface
+                = Typeface.createFromAsset(
+                getAssets(), "Pangolin-Regular.ttf");
+        mResult.setTypeface(typeface);
+
+        ActionBar actionBar=getSupportActionBar();
+
+        TextView tv = new TextView(getApplicationContext());
+        tv.setText(actionBar.getTitle());
+        tv.setTextColor(Color.WHITE);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP,20);
+        tv.setTypeface(typeface);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        actionBar.setCustomView(tv);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
 
 
          startBtn = (Button) findViewById(R.id.start);
@@ -382,10 +407,14 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
     private void getLyricsFunc(String URL, final String song, final String artist, final String ticker) {
 
-
+        Typeface typeface
+                = Typeface.createFromAsset(
+                getAssets(), "Pangolin-Regular.ttf");
+      //  mytv.setText("Song detected : Fetching Lyrics");
+      //  mytv.setTypeface(typeface);
         progressDialog=new ProgressDialog(AudioRecognition.this);
-        progressDialog.setTitle("Song detected : Fetching Lyrics");
-        progressDialog.setMessage(ticker);
+        progressDialog.setTitle(Utils.typeface(typeface,"Song detected : Fetching Lyrics"));
+        progressDialog.setMessage(Utils.typeface(typeface,ticker));
         progressDialog.setCancelable(true);
         progressDialog.show();
         Response.Listener<String> responseListener = new Response.Listener<String>() {

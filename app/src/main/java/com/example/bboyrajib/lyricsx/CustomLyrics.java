@@ -4,11 +4,19 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Handler;
+import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.InputFilter;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -24,10 +32,10 @@ import org.json.JSONObject;
 
 public class CustomLyrics extends AppCompatActivity {
 
-    private EditText song;
-    private EditText artist;
-    private Button getLyrics;
-    private TextView clyrics;
+    private TextInputEditText song;
+    private TextInputEditText artist;
+
+    private TextView clyrics,getLyrics,getLyrics2;
     String song_name,artist_name;
 
 
@@ -37,31 +45,106 @@ public class CustomLyrics extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_lyrics);
-        song=(EditText)findViewById(R.id.song);
-        artist=(EditText)findViewById(R.id.artist);
-        getLyrics=(Button)findViewById(R.id.getLyrics);
-        clyrics=(TextView)findViewById(R.id.customlyrics);
+        song=(TextInputEditText) findViewById(R.id.song);
+        artist=(TextInputEditText) findViewById(R.id.artist);
+        getLyrics=(TextView) findViewById(R.id.getLyrics);
+        getLyrics2=(TextView)findViewById(R.id.getLyrics2);
+        //clyrics=(TextView)findViewById(R.id.customlyrics);
+
+        song.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
+        artist.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
+
+        Typeface typeface
+                = Typeface.createFromAsset(
+                getAssets(), "Pangolin-Regular.ttf");
+        getLyrics2.setTypeface(typeface);
+
+
+        ActionBar actionBar=getSupportActionBar();
+
+        TextView tv = new TextView(getApplicationContext());
+        tv.setText(actionBar.getTitle());
+        tv.setTextColor(Color.WHITE);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP,20);
+        tv.setTypeface(typeface);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        actionBar.setCustomView(tv);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+
+//        clyrics.setTypeface(typeface);
+        song.setTypeface(typeface);
+        artist.setTypeface(typeface);
+        ((TextInputLayout)findViewById(R.id.tilsong)).setTypeface(typeface);
+        ((TextInputLayout)findViewById(R.id.tilart)).setTypeface(typeface);
+        getLyrics.setTypeface(typeface);
 
         getLyrics.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
+
+                Log.i("tag",artist_name+" ");
                  song_name=song.getText().toString();
+
                  artist_name=artist.getText().toString();
 
-                if(song_name.isEmpty() || artist_name.isEmpty())
+                if(song_name.isEmpty() ) {
+                    song.setError("Please type the song name");
                     return;
-                try  {
-                    Log.i("tag","inside try");
-                    InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
-                getLyricsFunc(getUrl(song_name,artist_name));
+                if(artist_name==null || artist_name.isEmpty()) {
+                    Log.i("tag","empty");
+                    artist_name = " ";
+                }
+
+
+
+
+
+                Intent intent=new Intent(CustomLyrics.this,SearchResults.class);
+                intent.putExtra("song",song_name);
+                intent.putExtra("artist",artist_name);
+
+              //  getLyricsFunc(getUrl(song_name,artist_name));
                 song.setText(null);
                 artist.setText(null);
                 song.requestFocus();
+
+                startActivity(intent);
+
+
+            }
+        });
+        getLyrics2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+
+                song_name=song.getText().toString();
+                artist_name=artist.getText().toString();
+
+                if(song_name.isEmpty() ) {
+                    song.setError("Please type the song name");
+                    return;
+                }
+                if(artist_name.isEmpty() || artist_name==null){
+                    artist_name = " ";
+                }
+
+
+                Intent intent=new Intent(CustomLyrics.this,SearchResults.class);
+                intent.putExtra("song",song_name);
+                intent.putExtra("artist",artist_name);
+
+                //  getLyricsFunc(getUrl(song_name,artist_name));
+                song.setText(null);
+                artist.setText(null);
+                song.requestFocus();
+
+                startActivity(intent);
 
 
             }
@@ -124,8 +207,8 @@ public class CustomLyrics extends AppCompatActivity {
                     JSONObject jsonObject=new JSONObject(response);
                     String lyric= jsonObject.getString("lyric");
                     if(lyric.isEmpty())
-                        clyrics.setText(song_name.toUpperCase()+" - "+artist_name.toUpperCase()+"\n----------------------------------------------\n\n"+"Sorry! No Lyrics found for this song");
-                    clyrics.setText(song_name.toUpperCase()+" - "+artist_name.toUpperCase()+"\n----------------------------------------------\n\n"+lyric);
+                        clyrics.setText(song_name.toUpperCase()+" - "+artist_name.toUpperCase()+"\n\n"+"Sorry! No Lyrics found for this song");
+                    clyrics.setText(song_name.toUpperCase()+" - "+artist_name.toUpperCase()+"\n\n"+lyric);
                 }catch (Exception e){
                     e.printStackTrace();
                     Toast.makeText(CustomLyrics.this,"Catch: 404",Toast.LENGTH_SHORT).show();

@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,6 +29,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ProgressBar;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     String title = "", text = "", ticker = "";
     Bundle extras;
     SharedPreferences prefs;
+   // ProgressBar progressBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,6 +68,16 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+
+
+
+
+        Typeface typeface
+                = Typeface.createFromAsset(
+                getAssets(), "Pangolin-Regular.ttf");
+        lyrics.setTypeface(typeface);
+        TextView myTitle = (TextView) toolbar.getChildAt(0);
+        myTitle.setTypeface(typeface);
 
         NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
@@ -82,6 +95,8 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+               // progressBar.setVisibility(View.VISIBLE);
 
                /* if(extras != null){
                     String data1 = extras.getString("song");
@@ -146,6 +161,8 @@ public class MainActivity extends AppCompatActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+
+
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
@@ -248,6 +265,7 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                     else {
+                      //  progressBar.setVisibility(View.INVISIBLE);
 
                       //  sendNotification();
 
@@ -395,11 +413,13 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
+         //   progressBar.setVisibility(View.INVISIBLE);
+
             if(words==null)
                 return;
 
             else if(words.isEmpty()){
-               lyrics.setText("\n\n\n\n\n\n\n\n\n\n"+tick.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
+               lyrics.setText("\n\n\n\n\n\n\n\n"+tick.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
                 return;
             }
            // sendNotification();

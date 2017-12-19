@@ -65,7 +65,7 @@ public class NLService extends NotificationListenerService {
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 
 
-       Toast.makeText(NLService.this,"LyricsX is Active",Toast.LENGTH_LONG).show();
+       Toast.makeText(NLService.this,"LyricsX is Active",Toast.LENGTH_SHORT).show();
         Log.d("yass","yass");
 
     }

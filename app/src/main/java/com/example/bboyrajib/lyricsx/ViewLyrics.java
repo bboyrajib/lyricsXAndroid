@@ -2,11 +2,17 @@ package com.example.bboyrajib.lyricsx;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.RequestQueue;
@@ -28,6 +34,7 @@ public class ViewLyrics extends AppCompatActivity {
     ProgressDialog progressDialog;
 
     String artist,song;
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +48,26 @@ public class ViewLyrics extends AppCompatActivity {
         String[] arr=extract(song+" - "+artist,artist);
 
         lyrics=(TextView)findViewById(R.id.viewLyrics);
+        Typeface typeface
+                = Typeface.createFromAsset(
+                getAssets(), "Pangolin-Regular.ttf");
+
+        ActionBar actionBar=getSupportActionBar();
+
+        TextView tv = new TextView(getApplicationContext());
+        tv.setText(actionBar.getTitle());
+        tv.setTextColor(Color.WHITE);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP,20);
+        tv.setTypeface(typeface);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        actionBar.setCustomView(tv);
+
+
+
+
+        lyrics.setTypeface(typeface);
+        progressBar = (ProgressBar) findViewById(R.id.progressbarVL);
+
 
         String ticker=song+" - "+artist;
         getLyricsFunc(getUrl(arr[0],arr[1]),song,artist,ticker);
@@ -99,11 +126,12 @@ public class ViewLyrics extends AppCompatActivity {
     private void getLyricsFunc(String URL, final String song, final String artist, final String ticker) {
 
 
-        progressDialog=new ProgressDialog(ViewLyrics.this);
+      /*  progressDialog=new ProgressDialog(ViewLyrics.this);
         progressDialog.setTitle("Fetching Lyrics");
         progressDialog.setMessage("Please wait a moment");
         progressDialog.setCancelable(true);
-        progressDialog.show();
+        progressDialog.show();*/
+        progressBar.setVisibility(View.VISIBLE);
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -115,7 +143,8 @@ public class ViewLyrics extends AppCompatActivity {
                         new doIt().execute();
                     }
                     else {
-                        progressDialog.dismiss();
+                       // progressDialog.dismiss();
+                        progressBar.setVisibility(View.INVISIBLE);
                         lyrics.setText(ticker.toUpperCase() + "\n\n" + lyric);
                     }
                 } catch (Exception e) {
@@ -174,7 +203,8 @@ public class ViewLyrics extends AppCompatActivity {
             super.onPostExecute(aVoid);
 
             String ticker=song+" - "+artist;
-            progressDialog.dismiss();
+           // progressDialog.dismiss();
+            progressBar.setVisibility(View.INVISIBLE);
 
             if(words==null)
                 return;

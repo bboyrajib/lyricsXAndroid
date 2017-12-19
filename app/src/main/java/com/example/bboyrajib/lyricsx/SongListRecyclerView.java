@@ -7,18 +7,27 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -57,11 +66,29 @@ public class SongListRecyclerView extends AppCompatActivity {
     String song,artist,album,ID,has_lyric,DB_ID,imageURL;
     String [] songs,artists,albums,IDs,has_lyrics,DB_IDs,imageURLs;
     private SwipeRefreshLayout swipeRefreshLayout;
+    ProgressBar progressBar;
+    Typeface typeface;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.song_list_recycler_view);
+
+        typeface
+                = Typeface.createFromAsset(
+                getAssets(), "Pangolin-Regular.ttf");
+
+        ActionBar actionBar=getSupportActionBar();
+
+        TextView tv = new TextView(getApplicationContext());
+        tv.setText(actionBar.getTitle());
+        tv.setTextColor(Color.WHITE);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP,20);
+        tv.setTypeface(typeface);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        actionBar.setCustomView(tv);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         recyclerView=(RecyclerView)findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
@@ -72,6 +99,11 @@ public class SongListRecyclerView extends AppCompatActivity {
         listItems=new ArrayList<>();
 
         empty=(TextView)findViewById(R.id.emptylist);
+        Typeface typeface
+                = Typeface.createFromAsset(
+                getAssets(), "Pangolin-Regular.ttf");
+        empty.setTypeface(typeface);
+        progressBar = (ProgressBar) findViewById(R.id.progressbar);
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 
@@ -80,11 +112,13 @@ public class SongListRecyclerView extends AppCompatActivity {
 
         }
       //  if(!prefs.getBoolean("isRestored",false)){
-            progressDialog = new ProgressDialog(SongListRecyclerView.this);
+         /*   progressDialog = new ProgressDialog(SongListRecyclerView.this);
             progressDialog.setTitle("Loading your search results!");
             progressDialog.setMessage("Please wait a moment");
             progressDialog.setCancelable(true);
-            progressDialog.show();
+            progressDialog.show();*/
+
+         progressBar.setVisibility(View.VISIBLE);
 
 
        // }
@@ -271,7 +305,9 @@ public class SongListRecyclerView extends AppCompatActivity {
             @Override
             public void onResponse(String response) {
                 try {
-                    progressDialog.dismiss();
+                   // progressDialog.dismiss();
+
+                    progressBar.setVisibility(View.INVISIBLE);
 
                     JSONObject jsonObject = new JSONObject(response);
                     String success = jsonObject.getString("success");
@@ -353,16 +389,23 @@ public class SongListRecyclerView extends AppCompatActivity {
                         RecyclerViewAdapter.RecyclerViewLongClickListener longClickListener=new RecyclerViewAdapter.RecyclerViewLongClickListener() {
                             @Override
                             public void onLongClick(View v, final int position) {
+
+
+
+
+
                                 AlertDialog.Builder builder=new AlertDialog.Builder(SongListRecyclerView.this);
-                                builder.setMessage("Are you sure you want to delete this?")
+
+                                builder.setMessage(Utils.typeface(typeface,"Are you sure you want to delete this?"))
+                                        .setTitle(TextUtils.concat(Utils.typeface(typeface,"Delete "),Utils.typefaceColor("#479194",Utils.typeface(typeface,songs[position]))))
                                         .setCancelable(true)
-                                        .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                                        .setNegativeButton(Utils.typeface(typeface,"YES"), new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
                                                 updateDB(position);
                                             }
                                         })
-                                        .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                                        .setPositiveButton(Utils.typeface(typeface,"NO"), new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
                                                 return;
@@ -435,11 +478,15 @@ public class SongListRecyclerView extends AppCompatActivity {
     }
 
     private void createAlertDialog(String has_lyric, String has_ID, final String song, final String artist, final int position){
+
+        CharSequence cs=new String(songs[position]);
+        SpannableString spannableString=Utils.typefaceColor("#479194",cs);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(Utils.typeface(typeface,spannableString));
         if(has_lyric.equals("0") && has_ID.equals("NOID")){
-            builder.setMessage("Sorry! No Lyric or Spotify ID found!")
+            builder.setMessage(Utils.typeface(typeface," Sorry! No Lyric or Spotify ID found!"))
                     .setCancelable(true)
-                    .setPositiveButton("DONE", new DialogInterface.OnClickListener() {
+                    .setPositiveButton(Utils.typeface(typeface,"DONE"), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             return;
@@ -447,9 +494,9 @@ public class SongListRecyclerView extends AppCompatActivity {
                     });
         }
         else if(has_lyric.equals("0")){
-            builder.setMessage("No Lyrics found! Do you want to play this song?")
+            builder.setMessage(Utils.typeface(typeface," No Lyrics found! Do you want to play this song?"))
                     .setCancelable(true)
-                    .setPositiveButton("PLAY SONG", new DialogInterface.OnClickListener() {
+                    .setPositiveButton(Utils.typeface(typeface,"PLAY SONG"), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             if(appInstalledOrNot("com.spotify.music")) {
@@ -463,9 +510,9 @@ public class SongListRecyclerView extends AppCompatActivity {
                     });
         }
         else if(has_ID.equals("NOID")){
-            builder.setMessage("Can't play this song! Do you want to view the lyrics?")
+            builder.setMessage(Utils.typeface(typeface," Can't play this song! Do you want to view the lyrics?"))
                     .setCancelable(true)
-                    .setPositiveButton("VIEW LYRICS", new DialogInterface.OnClickListener() {
+                    .setPositiveButton(Utils.typeface(typeface,"VIEW LYRICS"), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Intent intent=new Intent(SongListRecyclerView.this,ViewLyrics.class);
@@ -476,9 +523,9 @@ public class SongListRecyclerView extends AppCompatActivity {
                     });
         }
         else {
-            builder.setMessage("What do you want to do?")
+            builder.setMessage(Utils.typeface(typeface," What do you want to do?"))
                     .setCancelable(true)
-                    .setPositiveButton("PLAY SONG", new DialogInterface.OnClickListener() {
+                    .setPositiveButton(Utils.typeface(typeface,"PLAY SONG"), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             if(appInstalledOrNot("com.spotify.music")) {
@@ -491,7 +538,7 @@ public class SongListRecyclerView extends AppCompatActivity {
 
                         }
                     })
-                    .setNegativeButton("VIEW LYRICS", new DialogInterface.OnClickListener() {
+                    .setNegativeButton(Utils.typeface(typeface,"VIEW LYRICS"), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Intent intent=new Intent(SongListRecyclerView.this,ViewLyrics.class);
@@ -506,6 +553,8 @@ public class SongListRecyclerView extends AppCompatActivity {
     }
 
     private void updateDB(int pos){
+
+        progressBar.setVisibility(View.VISIBLE);
 
         Response.Listener<String> listener = new Response.Listener<String>() {
             @Override
