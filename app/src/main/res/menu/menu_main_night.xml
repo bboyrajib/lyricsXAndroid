@@ -6,14 +6,13 @@
     <item
         android:id="@+id/night"
         android:icon="@drawable/night"
-        android:title="Night Mode"
+        android:title="Day Mode"
         app:showAsAction="always"/>
     <item
         android:id="@+id/download"
         android:icon="@drawable/download"
         android:title="Update"
         app:showAsAction="always"/>
-
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"

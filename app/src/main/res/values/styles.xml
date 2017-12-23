@@ -3,9 +3,11 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">#479194</item>
-        <item name="colorPrimaryDark">#479f10</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">#1a237e</item>
+        <item name="colorPrimaryDark">#000051</item>
+        <item name="colorAccent">#000051</item>
+        <item name="colorControlNormal">#1a237e</item>
+        <item name="colorControlActivated">#1a237e</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -13,8 +15,68 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"><item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light">
+
+</style>
+
+
+
+
+    <style name="MyMaterialTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
+    <item name="windowNoTitle">true</item>
+    <item name="windowActionBar">false</item>
+        <item name="colorControlNormal">#1a237e</item>
+    <item name="colorPrimary">#1a237e</item>
+    <item name="colorPrimaryDark">#000051</item>
+        <item name="colorControlActivated">#1a237e</item>
+
+    <item name="colorAccent">#000051</item>
+
+    <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+
+    </style>
+
+    <style name="DrawerArrowStyle" parent="@style/Widget.AppCompat.DrawerArrowToggle">
+        <item name="spinBars">true</item>
+        <item name="color">#ffffff</item>
+    </style>
+
+
+    <style name="TextLabel" parent="TextAppearance.AppCompat">
+        <item name="colorAccent">#1a237e</item>
+        <item name="colorControlNormal">#1a237e</item>
+        <item name="colorControlActivated">#1a237e</item>
+    </style>
+
+    <style name="Button" parent="Base.Widget.AppCompat.Button">
+        ........
+        <item name="colorButtonNormal">#ffffff</item>
+        ........
+    </style>
+    <style name="SeekBarColor"
+        parent="Widget.AppCompat.SeekBar">
+        <item name="android:colorPrimary">#ffffff</item>
+
+        </style>
+
+    <style name="InputLayoutNormalHint" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">#ffff00</item>
+
+
+    </style>
+
+
+
+
+
+
+
+
+
+
 
 </resources>

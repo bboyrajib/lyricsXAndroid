@@ -5,14 +5,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.support.annotation.ColorInt;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
 import android.text.Html;
 import android.text.InputFilter;
 import android.util.Log;
@@ -21,19 +27,29 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.Volley;
+import com.rengwuxian.materialedittext.MaterialEditText;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.Field;
+
 public class CustomLyrics extends AppCompatActivity {
 
-    private TextInputEditText song;
-    private TextInputEditText artist;
+    MaterialEditText song,artist;
+
+   // private TextInputEditText song;
+   // private TextInputEditText artist;
+  //  TextInputLayout tilsong, tilartist;
+    RelativeLayout relativeLayout;
+    CardView cardView;
+    SharedPreferences prefs;
 
     private TextView clyrics,getLyrics,getLyrics2;
     String song_name,artist_name;
@@ -45,26 +61,34 @@ public class CustomLyrics extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_lyrics);
-        song=(TextInputEditText) findViewById(R.id.song);
-        artist=(TextInputEditText) findViewById(R.id.artist);
+
+
+        cardView=(CardView)findViewById(R.id.cvCS);
+        song=(MaterialEditText) findViewById(R.id.song);
+        artist=(MaterialEditText) findViewById(R.id.artist);
         getLyrics=(TextView) findViewById(R.id.getLyrics);
         getLyrics2=(TextView)findViewById(R.id.getLyrics2);
         //clyrics=(TextView)findViewById(R.id.customlyrics);
+        relativeLayout=(RelativeLayout)findViewById(R.id.relSR);
+        prefs= PreferenceManager.getDefaultSharedPreferences(CustomLyrics.this);
 
-        song.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
-        artist.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
+       // song.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
+       // artist.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
 
         Typeface typeface
                 = Typeface.createFromAsset(
                 getAssets(), "Pangolin-Regular.ttf");
         getLyrics2.setTypeface(typeface);
 
+        song.setFloatingLabelText(Utils.typeface(typeface,"SONG"));
+        artist.setFloatingLabelText(Utils.typeface(typeface,"ARTIST (OPTIONAL)"));
+
 
         ActionBar actionBar=getSupportActionBar();
 
         TextView tv = new TextView(getApplicationContext());
         tv.setText(actionBar.getTitle());
-        tv.setTextColor(Color.WHITE);
+        tv.setTextColor(Color.parseColor("#fcfcfc"));
         tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP,20);
         tv.setTypeface(typeface);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -72,12 +96,40 @@ public class CustomLyrics extends AppCompatActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        if(prefs.getBoolean("isNightModeEnabledTrue",false)){
+
+            cardView.setCardBackgroundColor(Color.parseColor("#29282e"));
+
+            song.setErrorColor(Color.parseColor("#ffa500"));
+            artist.setErrorColor(Color.parseColor("#ffa500"));
+
+            song.setPrimaryColor(Color.WHITE);
+            artist.setPrimaryColor(Color.WHITE);
+
+            song.setBaseColor(Color.WHITE);
+            artist.setBaseColor(Color.WHITE);
+
+            song.setUnderlineColor(Color.WHITE);
+            artist.setUnderlineColor(Color.WHITE);
+
+            song.setMetTextColor(Color.YELLOW);
+            artist.setMetTextColor(Color.YELLOW);
+
+            song.setMetHintTextColor(Color.WHITE);
+            artist.setMetHintTextColor(Color.WHITE);
+
+            setCursorColor(song,Color.YELLOW);
+            setCursorColor(artist,Color.YELLOW);
+
+
+        }
+
+
 
 //        clyrics.setTypeface(typeface);
         song.setTypeface(typeface);
         artist.setTypeface(typeface);
-        ((TextInputLayout)findViewById(R.id.tilsong)).setTypeface(typeface);
-        ((TextInputLayout)findViewById(R.id.tilart)).setTypeface(typeface);
+
         getLyrics.setTypeface(typeface);
 
         getLyrics.setOnClickListener(new View.OnClickListener() {
@@ -219,5 +271,32 @@ public class CustomLyrics extends AppCompatActivity {
          RequestQueue queue = Volley.newRequestQueue(CustomLyrics.this);
          queue.add(request);
     }
+
+    public static void setCursorColor(EditText view, @ColorInt int color) {
+        try {
+            // Get the cursor resource id
+            Field field = TextView.class.getDeclaredField("mCursorDrawableRes");
+            field.setAccessible(true);
+            int drawableResId = field.getInt(view);
+
+            // Get the editor
+            field = TextView.class.getDeclaredField("mEditor");
+            field.setAccessible(true);
+            Object editor = field.get(view);
+
+            // Get the drawable and set a color filter
+            Drawable drawable = ContextCompat.getDrawable(view.getContext(), drawableResId);
+            drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+            Drawable[] drawables = {drawable, drawable};
+
+            // Set the drawables
+            field = editor.getClass().getDeclaredField("mCursorDrawable");
+            field.setAccessible(true);
+            field.set(editor, drawables);
+        } catch (Exception ignored) {
+        }
+    }
+
+
 
 }

@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.bboyrajib.lyricsx.SearchResults"
+    android:background="#311b92"
     android:id="@+id/relSR" >
 
     <ProgressBar
@@ -16,20 +17,21 @@
         android:max="100"
         android:backgroundTint="#ffffff"
 
-        android:indeterminateTint="#1a09d6"
+        android:indeterminateTint="#ffffff"
         android:layout_marginTop="-5dp"/>
 
     <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/recyclerViewSR"
+
         />
 
     <TextView
         android:id="@+id/emptyresult"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#479194"
+        android:textColor="#ffffff"
         android:textAlignment="center"
         android:textSize="20dp"
         android:layout_alignParentStart="true"

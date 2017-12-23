@@ -3,6 +3,7 @@ package com.example.bboyrajib.lyricsx;
 
 
 import android.accounts.AccountManager;
+import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -14,18 +15,28 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.TextUtils;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,6 +47,7 @@ import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.AccountPicker;
 
@@ -44,41 +56,73 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
 
+    String APP_VERSION="1.2.2";
+    String checkVersionURL="http://bboyrajibx.xyz/checkVersion.php";
     int ID;
     TextView lyrics;
     String pack,song,artist;
     String title = "", text = "", ticker = "";
     Bundle extras;
     SharedPreferences prefs;
-   // ProgressBar progressBar;
+    CardView cardView;
+    FloatingActionButton fab;
+    private Menu menu;
+
+    ProgressBar progressBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         LocalBroadcastManager.getInstance(this).registerReceiver(onNotice, new IntentFilter("Msg"));
         lyrics = (TextView) findViewById(R.id.lyricsText);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+   //     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
-        setSupportActionBar(toolbar);
+//        setSupportActionBar(toolbar);
+        progressBar=(ProgressBar)findViewById(R.id.progressbarMain);
+        progressBar.setVisibility(View.INVISIBLE);
+
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        cardView=(CardView)findViewById(R.id.cardMain);
 
-
+        if(prefs.getBoolean("isNightModeEnabledTrue", false)){
+            cardView.setCardBackgroundColor(Color.parseColor("#28292e"));
+            lyrics.setTextColor(Color.WHITE);
+        }
 
 
         Typeface typeface
                 = Typeface.createFromAsset(
                 getAssets(), "Pangolin-Regular.ttf");
+
+        ActionBar actionBar=getSupportActionBar();
+
+        TextView tv = new TextView(getApplicationContext());
+        tv.setText(actionBar.getTitle());
+        tv.setTextColor(Color.parseColor("#fcfcfc"));
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP,20);
+        tv.setTypeface(typeface);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        actionBar.setCustomView(tv);
+
+
         lyrics.setTypeface(typeface);
-        TextView myTitle = (TextView) toolbar.getChildAt(0);
-        myTitle.setTypeface(typeface);
+   //     TextView myTitle = (TextView) toolbar.getChildAt(0);
+   //     myTitle.setTypeface(typeface);
 
 
         NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
@@ -88,15 +132,20 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return;
         }
+
         if(prefs.getString("lyrics",null)!=null)
             lyrics.setText(prefs.getString("lyrics",null));
 
 
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+
+                //cardView.setCardBackgroundColor(Color.parseColor("#28292e"));
+               // lyrics.setTextColor(Color.WHITE);
 
                // progressBar.setVisibility(View.VISIBLE);
 
@@ -107,8 +156,9 @@ public class MainActivity extends AppCompatActivity {
                     getLyricsFunc(getUrl(data1,data2),data1,data2,data3);
                     return;
                 }*/
-                if (song==null||ticker==null) {
+                if (song==null||ticker==null ) {
                   //  getLyricsFunc(getUrl(prefs.getString("song",null),prefs.getString("artist",null)),prefs.getString("song",null),prefs.getString("artist",null),prefs.getString("ticker",null));
+                    if(prefs.getString("lyrics",null)!=null)
                     lyrics.setText(prefs.getString("lyrics",null));
                     return;
                 }
@@ -139,13 +189,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        checkVersion();
+      //  Log.i("TAG",MainActivity.this.getFilesDir().toString());
+
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-
+        checkVersion();
 
         NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
@@ -154,7 +209,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        this.menu=menu;
+        if(prefs.getBoolean("isNightModeEnabledTrue",false))
+            getMenuInflater().inflate(R.menu.menu_main_night,menu);
+        else
+            getMenuInflater().inflate(R.menu.menu_main, menu);
+        menu.getItem(1).setVisible(false);
+        menu.getItem(1).setEnabled(false);
         return true;
     }
 
@@ -173,6 +234,29 @@ public class MainActivity extends AppCompatActivity {
         }
         if (id == R.id.action_developers) {
             startActivity(new Intent(MainActivity.this,DeveloperActivity.class));
+        }
+        if(id==R.id.night){
+            SharedPreferences.Editor editor=prefs.edit();
+
+            if(prefs.getBoolean("isNightModeEnabledTrue", false)){
+                cardView.setCardBackgroundColor(Color.WHITE);
+                lyrics.setTextColor(Color.parseColor("#1a237e"));
+                editor.putBoolean("isNightModeEnabledTrue", false).apply();
+                menu.getItem(0).setIcon(ContextCompat.getDrawable(this,R.drawable.night));
+            }
+            else {
+                editor.putBoolean("isNightModeEnabledTrue", true).apply();
+                menu.getItem(0).setIcon(ContextCompat.getDrawable(this, R.drawable.day));
+                cardView.setCardBackgroundColor(Color.parseColor("#28292e"));
+                lyrics.setTextColor(Color.WHITE);
+            }
+
+
+        }
+
+        if(id==R.id.download){
+            new DownloadFileFromURL().execute("http://bboyrajib.5gbfree.com/LyricsX.apk");
+           // startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("https://bboyrajibx.xyz/LyricsX.apk")));
         }
 
         return super.onOptionsItemSelected(item);
@@ -270,8 +354,11 @@ public class MainActivity extends AppCompatActivity {
                       //  progressBar.setVisibility(View.INVISIBLE);
 
                       //  sendNotification();
+                        lyrics.setTextIsSelectable(true);
+                        SpannableString ss1=  new SpannableString(ticker.toUpperCase());
+                        ss1.setSpan(new RelativeSizeSpan(1.3f), 0,ticker.length(), 0);
 
-                        lyrics.setText(ticker.toUpperCase() + "\n\n" + lyric);
+                        lyrics.setText(TextUtils.concat(ss1,  "\n\n" , lyric));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -415,21 +502,156 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
+            SpannableString ss1=  new SpannableString(tick.toUpperCase());
+            ss1.setSpan(new RelativeSizeSpan(1.3f), 0,tick.length(), 0);
+
+           // lyrics.setText(TextUtils.concat(ss1,  "\n\n" , words));
+
          //   progressBar.setVisibility(View.INVISIBLE);
 
             if(words==null)
                 return;
 
             else if(words.isEmpty()){
-               lyrics.setText("\n\n\n\n\n\n\n\n"+tick.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
+               lyrics.setText(TextUtils.concat("\n\n\n\n\n\n\n\n",ss1,"\n\nSorry! No Lyrics Found\n\nTry using Manual Search"));
                 return;
             }
            // sendNotification();
+            lyrics.setTextIsSelectable(true);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
-                lyrics.setText(tick.toUpperCase()+"\n\n"+Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT));
+                lyrics.setText(TextUtils.concat(ss1,"\n\n",Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT)));
             else
-                lyrics.setText(tick.toUpperCase()+"\n\n"+Html.fromHtml(words));
+                lyrics.setText(TextUtils.concat(ss1,"\n\n",Html.fromHtml(words)));
         }
+    }
+
+    public void checkVersion(){
+        Response.Listener<String> responseListener = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    // progressDialog.dismiss();
+                    JSONObject jsonObject=new JSONObject(response);
+                    if(jsonObject.getBoolean("success")){
+                        if(jsonObject.getString("version").equals(APP_VERSION)){
+                            menu.getItem(1).setVisible(false);
+                            menu.getItem(1).setEnabled(false);
+                        }
+                        else {
+                            menu.getItem(1).setVisible(true);
+                            menu.getItem(1).setEnabled(true);
+                        }
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // Toast.makeText(MainActivity.this, "Catch: 404", Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+        LyricsRequest request = new LyricsRequest(checkVersionURL, responseListener);
+        RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
+        queue.add(request);
+    }
+
+
+
+    /**
+     * Background Async Task to download file
+     * */
+    public class DownloadFileFromURL extends AsyncTask<String, String, String> {
+
+        /**
+         * Before starting background thread Show Progress Bar Dialog
+         * */
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        /**
+         * Downloading file in background thread
+         * */
+        @Override
+        protected String doInBackground(String... f_url) {
+            int count;
+            try {
+                File file= new File(Environment
+                        .getExternalStorageDirectory().toString()+"/LyricsX.apk");
+                if(file.exists())
+                    file.delete();
+                URL url = new URL(f_url[0]);
+                URLConnection conection = url.openConnection();
+                conection.connect();
+
+                // this will be useful so that you can show a tipical 0-100%
+                // progress bar
+                int lenghtOfFile = conection.getContentLength();
+
+                // download the file
+                InputStream input = new BufferedInputStream(url.openStream(),
+                        8192);
+
+                // Output stream
+                OutputStream output = new FileOutputStream(Environment
+                        .getExternalStorageDirectory().toString()+"/LyricsX.apk");
+
+
+                byte data[] = new byte[1024];
+
+                long total = 0;
+
+                while ((count = input.read(data)) != -1) {
+                    total += count;
+                    // publishing the progress....
+                    // After this onProgressUpdate will be called
+                    publishProgress("" + (int) ((total * 100) / lenghtOfFile));
+
+                    // writing data to file
+                    output.write(data, 0, count);
+                }
+
+                // flushing output
+                output.flush();
+
+                // closing streams
+                output.close();
+                input.close();
+
+            } catch (Exception e) {
+                Log.e("Error: ", e.getMessage());
+            }
+
+            return null;
+        }
+
+        /**
+         * Updating progress bar
+         * */
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+            Log.i("values",values[0]);
+            progressBar.setProgress(Integer.parseInt(values[0]));
+        }
+
+        /**
+         * After completing background task Dismiss the progress dialog
+         * **/
+        @Override
+        protected void onPostExecute(String file_url) {
+            // dismiss the dialog after the file was downloaded
+            progressBar.setVisibility(View.INVISIBLE);
+            Log.i("Progress","Downloaded");
+            Intent install = new Intent(Intent.ACTION_VIEW);
+            install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            install.setDataAndType(Uri.fromFile(new File(Environment
+                            .getExternalStorageDirectory().toString()+"/LyricsX.apk")),
+                    "application/vnd.android.package-archive");
+            startActivity(install);
+        }
+
     }
 
 

@@ -5,24 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#fffffd"
+    android:fitsSystemWindows="true"
+    android:backgroundTint="#311b92"
     tools:context="com.example.bboyrajib.lyricsx.MainActivity">
 
 
 
-    <android.support.design.widget.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            />
 
-    </android.support.design.widget.AppBarLayout>
 
 
     <android.support.design.widget.FloatingActionButton
@@ -31,9 +21,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
+
         app:srcCompat="@drawable/refresh2"
         app:layout_anchorGravity="top|right|end"
-        app:backgroundTint="#ffffff"/>
+        app:backgroundTint="#1a237e"/>
 
 
     <android.support.design.widget.FloatingActionButton
@@ -45,7 +36,7 @@
         android:src="@drawable/search"
 
         app:layout_anchorGravity="bottom|left|start"
-        app:backgroundTint="#ffffff"/>
+        app:backgroundTint="#1a237e"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/audio"
@@ -53,9 +44,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@drawable/recognise"
+        app:srcCompat="@drawable/recognisewhite"
         app:layout_anchorGravity="top|right|end"
-        app:backgroundTint="#ffffff"/>
+        app:backgroundTint="#1a237e"/>
 
 
 

@@ -7,18 +7,31 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:showIn="@layout/activity_main">
 
+    <ProgressBar
+        android:id="@+id/progressbarMain"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="false"
+        android:max="100"
+
+        android:progress="0"
+        android:progressBackgroundTint="#ffffff"
+        android:progressTint="#ffffff"
+
+        android:layout_marginTop="-5dp"/>
 
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="1dp"
-        android:layout_marginTop="2dp"
+        android:layout_marginBottom="7dp"
+        android:layout_marginTop="7dp"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         app:cardCornerRadius="10dp"
         app:cardElevation="5dp"
-        android:layout_margin="5dp"
 
+        android:id="@+id/cardMain"
         app:cardBackgroundColor="#ffffff"
         >
 
@@ -30,16 +43,17 @@
 
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="59dp">
+
+        >
 
         <TextView
             android:id="@+id/lyricsText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#479194"
+            android:textColor="#1a237e"
 
             android:textAlignment="center"
-            android:text="\n\n\n\n\n\n\n\n\n\nYour lyrics will appear here\n\nMenu > Settings > Allow Notification Access"
+            android:text="\n\n\n\n\n\n\n\nYour lyrics will appear here\n\nMenu > Settings > Allow Notification Access"
             android:textSize="20sp"
 
             android:layout_marginTop="10dp"

@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
@@ -27,6 +29,8 @@ import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -54,22 +58,25 @@ public class SongListRecyclerView extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private RecyclerView.Adapter adapter;
+
     private List<ListItem> listItems;
     String listSongs,listArtists,listAlbums;
-    String createTableURL="http://eurus.96.lt/lyricsx_create_table.php";
-    String backupToURL="http://eurus.96.lt/lyricsx_backup_to_table.php";
-    String restoreFromURL="http://eurus.96.lt/lyricsx_restore_from_table.php";
-    String updateTableURL="http://eurus.96.lt/lyricsx_update_table.php";
+  //  String createTableURL="http://eurus.96.lt/lyricsx_create_table.php";
+  //  String backupToURL="http://eurus.96.lt/lyricsx_backup_to_table.php";
+    String restoreFromURL="http://bboyrajibx.xyz/lyricsx_restore_from_table.php";
+    String updateTableURL="http://bboyrajibx.xyz/lyricsx_update_table.php";
+    String deleteAllURL="http://bboyrajibx.xyz/lyricsx_delete_all.php";
     TextView empty;
     SharedPreferences prefs;
     RelativeLayout relativeLayout;
     ProgressDialog progressDialog;
     int prev_row,curr_row,count=0,i;
-    String song,artist,album,ID,has_lyric,DB_ID,imageURL;
-    String [] songs,artists,albums,IDs,has_lyrics,DB_IDs,imageURLs;
+    String song,artist,album,ID,has_lyric,DB_ID,imageURL,TimeStamp;
+    String [] songs,artists,albums,IDs,has_lyrics,DB_IDs,imageURLs,TimeStamps;
     private SwipeRefreshLayout swipeRefreshLayout;
     ProgressBar progressBar;
     Typeface typeface;
+    CardView cardView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -84,7 +91,7 @@ public class SongListRecyclerView extends AppCompatActivity {
 
         TextView tv = new TextView(getApplicationContext());
         tv.setText(actionBar.getTitle());
-        tv.setTextColor(Color.WHITE);
+        tv.setTextColor(Color.parseColor("#fcfcfc"));
         tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP,20);
         tv.setTypeface(typeface);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -92,12 +99,18 @@ public class SongListRecyclerView extends AppCompatActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        cardView=(CardView)findViewById(R.id.cvResults);
+
+
         recyclerView=(RecyclerView)findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
+
+       // else
+            recyclerView.setAdapter(adapter);
 
         relativeLayout=(RelativeLayout)findViewById(R.id.relandrecycle);
+
         listItems=new ArrayList<>();
 
         empty=(TextView)findViewById(R.id.emptylist);
@@ -108,6 +121,7 @@ public class SongListRecyclerView extends AppCompatActivity {
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+
 
         if(!prefs.getBoolean("isAccountSelected",false)) {
             return;
@@ -303,6 +317,8 @@ public class SongListRecyclerView extends AppCompatActivity {
 
         listItems.clear();
 
+
+
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -314,6 +330,7 @@ public class SongListRecyclerView extends AppCompatActivity {
                     JSONObject jsonObject = new JSONObject(response);
                     String success = jsonObject.getString("success");
                     if (success.equals("restored")) {
+
                          song = jsonObject.getString("song");
                          artist = jsonObject.getString("artist");
                          album=jsonObject.getString("album");
@@ -321,6 +338,7 @@ public class SongListRecyclerView extends AppCompatActivity {
                          has_lyric=jsonObject.getString("has_lyric");
                         DB_ID=jsonObject.getString("db_id");
                         imageURL=jsonObject.getString("imageUrl");
+                        TimeStamp=jsonObject.getString("timestamp");
                         int rows = jsonObject.getInt("count");
                       /*  if (rows == 1) {
                             Snackbar snackbar = Snackbar.make(relativeLayout,   "1 song has been restored!", Snackbar.LENGTH_LONG);
@@ -378,9 +396,10 @@ public class SongListRecyclerView extends AppCompatActivity {
                              has_lyrics=has_lyric.split("\\n\\n");
                              DB_IDs=DB_ID.split("\\n\\n");
                              imageURLs=imageURL.split("\\n\\n");
+                            TimeStamps=TimeStamp.split("\\n\\n");
 
                             for(int i=0;i<songs.length;i++){
-                                ListItem listItem=new ListItem(songs[i],artists[i],albums[i],IDs[i],has_lyrics[i],DB_IDs[i],imageURLs[i]);
+                                ListItem listItem=new ListItem(songs[i],artists[i],albums[i],IDs[i],has_lyrics[i],DB_IDs[i],imageURLs[i],TimeStamps[i]);
                                 Log.i("test",songs[i]+" "+artists[i]);
                                 listItems.add(listItem);
                             }
@@ -388,64 +407,67 @@ public class SongListRecyclerView extends AppCompatActivity {
 
                             //listItems.clear();
 
-                        RecyclerViewAdapter.RecyclerViewLongClickListener longClickListener=new RecyclerViewAdapter.RecyclerViewLongClickListener() {
-                            @Override
-                            public void onLongClick(View v, final int position) {
+
+                            RecyclerViewAdapter.RecyclerViewLongClickListener longClickListener = new RecyclerViewAdapter.RecyclerViewLongClickListener() {
+                                @Override
+                                public void onLongClick(View v, final int position) {
 
 
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(SongListRecyclerView.this);
 
+                                    builder.setMessage(Utils.typeface(typeface, "Are you sure you want to delete this?"))
+                                            .setTitle(TextUtils.concat(Utils.typeface(typeface, "Delete "), Utils.typefaceColor("#1a237e", Utils.typeface(typeface, songs[position]))))
+                                            .setCancelable(true)
+                                            .setNegativeButton(Utils.typefaceColor("#1a237e", Utils.typeface(typeface, "YES")), new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    updateDB(position);
+                                                }
+                                            })
+                                            .setPositiveButton(Utils.typefaceColor("#1a237e", Utils.typeface(typeface, "NO")), new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    return;
+                                                }
+                                            });
+                                    final AlertDialog alertDialog = builder.create();
+                                    alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                                        @Override
+                                        public void onShow(DialogInterface dialog) {
+                                            Button pos = alertDialog.getButton(Dialog.BUTTON_POSITIVE);
+                                            pos.setTypeface(typeface);
+                                            pos.setTextColor(Color.parseColor("#1a237e"));
+                                            Button neg = alertDialog.getButton(Dialog.BUTTON_NEGATIVE);
+                                            neg.setTypeface(typeface);
+                                            neg.setTextColor(Color.parseColor("#1a237e"));
+                                        }
+                                    });
+                                    alertDialog.show();
 
-
-                                AlertDialog.Builder builder=new AlertDialog.Builder(SongListRecyclerView.this);
-
-                                builder.setMessage(Utils.typeface(typeface,"Are you sure you want to delete this?"))
-                                        .setTitle(TextUtils.concat(Utils.typeface(typeface,"Delete "),Utils.typefaceColor("#479194",Utils.typeface(typeface,songs[position]))))
-                                        .setCancelable(true)
-                                        .setNegativeButton(Utils.typeface(typeface,"YES"), new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                updateDB(position);
-                                            }
-                                        })
-                                        .setPositiveButton(Utils.typeface(typeface,"NO"), new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                return;
-                                            }
-                                        });
-                                final AlertDialog alertDialog=builder.create();
-                                alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
-                                    @Override
-                                    public void onShow(DialogInterface dialog) {
-                                        Button pos=alertDialog.getButton(Dialog.BUTTON_POSITIVE);
-                                        pos.setTypeface(typeface);
-                                        Button neg=alertDialog.getButton(Dialog.BUTTON_NEGATIVE);
-                                        neg.setTypeface(typeface);
-                                    }
-                                });
-                                alertDialog.show();
-
-                            }
-                        };
-                            RecyclerViewAdapter.RecyclerViewClickListener listener=new RecyclerViewAdapter.RecyclerViewClickListener() {
+                                }
+                            };
+                            RecyclerViewAdapter.RecyclerViewClickListener listener = new RecyclerViewAdapter.RecyclerViewClickListener() {
                                 @Override
                                 public void onClick(View view, int position) {
-                                    createAlertDialog(has_lyrics[position],IDs[position],songs[position],artists[position],position,imageURLs[position]);
+                                    createAlertDialog(has_lyrics[position], IDs[position], songs[position], artists[position], position, imageURLs[position]);
                                 }
 
 
                             };
 
 
-
-
-
-                            adapter=new RecyclerViewAdapter(listItems,getApplicationContext(),listener,longClickListener);
+                            adapter = new RecyclerViewAdapter(listItems, getApplicationContext(), listener, longClickListener);
                             recyclerView.setAdapter(adapter);
+
+
                        // }
 
                         adapter.notifyDataSetChanged();
                         swipeRefreshLayout.setRefreshing(false);
+                       /* if(prefs.getBoolean("isNightModeEnabledTrue",false)){
+                            relativeLayout.setBackgroundColor(Color.WHITE);
+                            progressBar.getIndeterminateDrawable().setColorFilter(Color.parseColor("#311b92"), PorterDuff.Mode.SRC_IN);
+                        }*/
 
 
 
@@ -457,11 +479,14 @@ public class SongListRecyclerView extends AppCompatActivity {
                         SharedPreferences.Editor editor = prefs.edit();
                         editor.putBoolean("isRestored", true);
                         editor.apply();
+                        empty.setVisibility(View.VISIBLE);
                         Snackbar snackbar = Snackbar.make(relativeLayout, "No backups found in database!", Snackbar.LENGTH_LONG);
                         View sbView = snackbar.getView();
                         TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
                         textView.setTextColor(Color.YELLOW);
                         snackbar.show();
+                        adapter.notifyDataSetChanged();
+                        swipeRefreshLayout.setRefreshing(false);
 
                     }
                     // restore.setVisibility(View.GONE);
@@ -492,13 +517,13 @@ public class SongListRecyclerView extends AppCompatActivity {
     private void createAlertDialog(String has_lyric, String has_ID, final String song, final String artist, final int position, final String URL){
 
         CharSequence cs=new String(songs[position]);
-        SpannableString spannableString=Utils.typefaceColor("#479194",cs);
+        SpannableString spannableString=Utils.typefaceColor("#1a237e",cs);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(Utils.typeface(typeface,spannableString));
         if(has_lyric.equals("0") && has_ID.equals("NOID")){
             builder.setMessage(Utils.typeface(typeface," Sorry! No Lyric or Spotify ID found!"))
                     .setCancelable(true)
-                    .setPositiveButton(Utils.typeface(typeface,"DONE"), new DialogInterface.OnClickListener() {
+                    .setPositiveButton(Utils.typefaceColor("#1a237e",Utils.typeface(typeface,"DONE")), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             return;
@@ -508,7 +533,7 @@ public class SongListRecyclerView extends AppCompatActivity {
         else if(has_lyric.equals("0")){
             builder.setMessage(Utils.typeface(typeface," No Lyrics found! Do you want to play this song?"))
                     .setCancelable(true)
-                    .setPositiveButton(Utils.typeface(typeface,"PLAY SONG"), new DialogInterface.OnClickListener() {
+                    .setPositiveButton(Utils.typefaceColor("#1a237e",Utils.typeface(typeface,"PLAY SONG")), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             if(appInstalledOrNot("com.spotify.music")) {
@@ -524,7 +549,7 @@ public class SongListRecyclerView extends AppCompatActivity {
         else if(has_ID.equals("NOID")){
             builder.setMessage(Utils.typeface(typeface," Can't play this song! Do you want to view the lyrics?"))
                     .setCancelable(true)
-                    .setPositiveButton(Utils.typeface(typeface,"VIEW LYRICS"), new DialogInterface.OnClickListener() {
+                    .setPositiveButton(Utils.typefaceColor("#1a237e",Utils.typeface(typeface,"VIEW LYRICS")), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Intent intent=new Intent(SongListRecyclerView.this,ViewLyrics.class);
@@ -538,7 +563,7 @@ public class SongListRecyclerView extends AppCompatActivity {
         else {
             builder.setMessage(Utils.typeface(typeface," What do you want to do?"))
                     .setCancelable(true)
-                    .setPositiveButton(Utils.typeface(typeface,"PLAY SONG"), new DialogInterface.OnClickListener() {
+                    .setPositiveButton(Utils.typefaceColor("#1a237e",Utils.typeface(typeface,"PLAY SONG")), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             if(appInstalledOrNot("com.spotify.music")) {
@@ -551,7 +576,7 @@ public class SongListRecyclerView extends AppCompatActivity {
 
                         }
                     })
-                    .setNegativeButton(Utils.typeface(typeface,"VIEW LYRICS"), new DialogInterface.OnClickListener() {
+                    .setNegativeButton(Utils.typefaceColor("#1a237e",Utils.typeface(typeface,"VIEW LYRICS")), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Intent intent=new Intent(SongListRecyclerView.this,ViewLyrics.class);
@@ -571,8 +596,10 @@ public class SongListRecyclerView extends AppCompatActivity {
             public void onShow(DialogInterface dialog) {
                 Button pos=alertDialog.getButton(Dialog.BUTTON_POSITIVE);
                 pos.setTypeface(typeface);
+                pos.setTextColor(Color.parseColor("#1a237e"));
                 Button neg=alertDialog.getButton(Dialog.BUTTON_NEGATIVE);
                 neg.setTypeface(typeface);
+                neg.setTextColor(Color.parseColor("#1a237e"));
             }
         });
         alertDialog.show();
@@ -601,6 +628,89 @@ public class SongListRecyclerView extends AppCompatActivity {
         request.setRetryPolicy(new DefaultRetryPolicy(DefaultRetryPolicy.DEFAULT_TIMEOUT_MS * 2, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         RequestQueue queue = Volley.newRequestQueue(SongListRecyclerView.this);
         queue.add(request);
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_song_list, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+
+
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.deleteAll) {
+            AlertDialog.Builder builder=new AlertDialog.Builder(SongListRecyclerView.this);
+
+            builder.setMessage(Utils.typeface(typeface,"Are you sure you want to delete the entire history?"))
+                    .setTitle(TextUtils.concat(Utils.typefaceColor("#1a237e",Utils.typeface(typeface,"Delete All !"))))
+                    .setCancelable(true)
+                    .setNegativeButton(Utils.typefaceColor("#1a237e",Utils.typeface(typeface,"YES")), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            deleteAll();
+                        }
+                    })
+                    .setPositiveButton(Utils.typefaceColor("#1a237e",Utils.typeface(typeface,"NO")), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            return;
+                        }
+                    });
+            final AlertDialog alertDialog=builder.create();
+            alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                @Override
+                public void onShow(DialogInterface dialog) {
+                    Button pos=alertDialog.getButton(Dialog.BUTTON_POSITIVE);
+                    pos.setTypeface(typeface);
+                    pos.setTextColor(Color.parseColor("#1a237e"));
+                    Button neg=alertDialog.getButton(Dialog.BUTTON_NEGATIVE);
+                    neg.setTypeface(typeface);
+                    neg.setTextColor(Color.parseColor("#1a237e"));
+                }
+            });
+            alertDialog.show();
+        }
+
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void deleteAll(){
+
+        progressBar.setVisibility(View.VISIBLE);
+
+        Response.Listener<String> listener = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    if(new JSONObject(response).getBoolean("success"))
+                        restoreFunc();
+
+                } catch (Exception e) {
+
+                    e.printStackTrace();
+                }
+            }
+        };
+        // Log.i("All",title+" "+album+" "+artist+" "+trackID+" "+has_lyric);
+        //  Log.i("requests to server"," " +songs[i]);
+        BackupRestorePostRequest request = new BackupRestorePostRequest(deleteAllURL, prefs.getString("username",null), listener);
+        request.setRetryPolicy(new DefaultRetryPolicy(DefaultRetryPolicy.DEFAULT_TIMEOUT_MS * 2, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        RequestQueue queue = Volley.newRequestQueue(SongListRecyclerView.this);
+        queue.add(request);
+
+
+
     }
 
 

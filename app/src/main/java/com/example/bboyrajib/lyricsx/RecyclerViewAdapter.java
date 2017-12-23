@@ -1,6 +1,10 @@
 package com.example.bboyrajib.lyricsx;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.preference.PreferenceManager;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,7 +27,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private Context context;
     private RecyclerViewClickListener mListener;
     private RecyclerViewLongClickListener mLongListener;
-
+    SharedPreferences prefs;
 
 
 
@@ -34,6 +38,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         this.context = context;
         mListener=listener;
         mLongListener=longClickListener;
+        prefs= PreferenceManager.getDefaultSharedPreferences(context);
 
     }
 
@@ -46,11 +51,28 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+
         ListItem listItem=listItems.get(position);
         holder.Song.setText(listItem.getSong());
+
         holder.Artist.setText(listItem.getArtist());
         holder.Album.setText(listItem.getAlbum());
-        Picasso.with(context).load(listItem.getImageURL()).into(holder.imageView);
+        if(listItem.getTimeStamp().equals("0"))
+            holder.TimeStamp.setVisibility(View.GONE);
+       else holder.TimeStamp.setText(listItem.getTimeStamp());
+        if(listItem.getImageURL()==null || listItem.getImageURL().isEmpty()){
+            Picasso.with(context).load("https://deathgrind.club/uploads/posts/2017-09/1506510157_no_cover.png").into(holder.imageView);
+        }
+        else
+            Picasso.with(context).load(listItem.getImageURL()).into(holder.imageView);
+
+        if(prefs.getBoolean("isNightModeEnabledTrue",false)){
+            holder.cardView.setCardBackgroundColor(Color.parseColor("#29282e"));
+            holder.Song.setTextColor(Color.YELLOW);
+            holder.Artist.setTextColor(Color.WHITE);
+            holder.Album.setTextColor(Color.WHITE);
+            holder.TimeStamp.setTextColor(Color.WHITE);
+        }
     }
 
     public void clear(){
@@ -70,10 +92,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,View.OnLongClickListener{
 
-        public TextView Song,Artist,Album;
+        public TextView Song,Artist,Album,TimeStamp;
         public RecyclerViewClickListener mListener;
         public RecyclerViewLongClickListener mLongListener;
         public ImageView imageView;
+        public CardView cardView;
 
         public ViewHolder(View itemView,RecyclerViewClickListener listener,RecyclerViewLongClickListener longClickListener) {
             super(itemView);
@@ -82,6 +105,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             Artist=(TextView)itemView.findViewById(R.id.artist_name);
             Album=(TextView)itemView.findViewById(R.id.album_name);
             imageView=(ImageView)itemView.findViewById(R.id.imageViewRV);
+            TimeStamp=(TextView)itemView.findViewById(R.id.timestamp);
+            cardView=(CardView) itemView.findViewById(R.id.cvResults);
 
             mListener=listener;
             mLongListener=longClickListener;

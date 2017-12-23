@@ -3,6 +3,10 @@ package com.example.bboyrajib.lyricsx;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -28,30 +32,41 @@ import com.squareup.picasso.Picasso;
 
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.TextUtils;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,7 +75,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
     private ACRCloudClient mClient;
     private ACRCloudConfig mConfig;
-
+    int flag=0;
     private TextView mVolume, mResult, tv_time;
 
     private boolean mProcessing = false;
@@ -71,16 +86,28 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
     private long startTime = 0;
     private long stopTime = 0;
 
+    Menu menu;
+
+    String timestamp;
+    Timestamp ts;
+    Date date;
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
+
     String title,artist,album,trackID,has_lyric="0",imageURL;
     RelativeLayout relativeLayout;
-    String createTableURL="http://eurus.96.lt/lyricsx_create_table.php";
-    String backupToURL="http://eurus.96.lt/lyricsx_backup_to_table.php";
-    String restoreFromURL="http://eurus.96.lt/lyricsx_restore_from_table.php";
+    String FETCH_API="http://bboyrajibx.xyz/lyricsxapi.php";
+    String createTableURL="http://bboyrajibx.xyz/lyricsx_create_table.php";
+    String backupToURL="http://bboyrajibx.xyz/lyricsx_backup_to_table.php";
+    String restoreFromURL="http://bboyrajibx.xyzm/lyricsx_restore_from_table.php";
   //  Set<String> set;
     //Set<String> fetch;
 
     ProgressDialog progressDialog;
+    ProgressBar progressBar;
     Button startBtn,listbtn;
+
+    SeekBar seekBar;
+    Button save;
 
 
     SharedPreferences prefs;
@@ -91,6 +118,9 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_recognition);
+        progressBar=(ProgressBar)findViewById(R.id.progressbarAR);
+
+
 
       /*  path = Environment.getExternalStorageDirectory().toString()
                 + "/acrcloud/model";
@@ -104,7 +134,18 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         mResult = (TextView) findViewById(R.id.recognize);
         cardView=(CardView)findViewById(R.id.cv);
+
         imageView=(ImageView)findViewById(R.id.cardImage);
+
+        if(prefs.getBoolean("isNightModeEnabledTrue", false)){
+            cardView.setBackgroundColor(Color.parseColor("#29282e"));
+            mResult.setTextColor(Color.WHITE);
+        }
+
+
+        seekBar=(SeekBar)findViewById(R.id.seekBar);
+        imageView.setImageAlpha(seekBar.getProgress());
+        save=(Button)findViewById(R.id.saveAR);
 
 
 
@@ -112,16 +153,21 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                 = Typeface.createFromAsset(
                 getAssets(), "Pangolin-Regular.ttf");
         mResult.setTypeface(typeface);
+        save.setTypeface(typeface);
+
+        seekBar.setVisibility(View.GONE);
+        save.setVisibility(View.GONE);
 
         ActionBar actionBar=getSupportActionBar();
 
         TextView tv = new TextView(getApplicationContext());
         tv.setText(actionBar.getTitle());
-        tv.setTextColor(Color.WHITE);
+        tv.setTextColor(Color.parseColor("#fcfcfc"));
         tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP,20);
         tv.setTypeface(typeface);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         actionBar.setCustomView(tv);
+
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -139,8 +185,9 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
       //
         else {
+            progressBar.setVisibility(View.VISIBLE);
             imageView.setImageResource(0);
-            Toast.makeText(this, "Initializing!", Toast.LENGTH_SHORT).show();
+         //   Toast.makeText(this, "Initializing!", Toast.LENGTH_SHORT).show();
 
 
             this.mConfig = new ACRCloudConfig();
@@ -152,7 +199,8 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                         JSONObject jsonObject = new JSONObject(response);
                         boolean flag = jsonObject.getBoolean("success");
                         if (flag) {
-                            Toast.makeText(AudioRecognition.this, "Initialized!", Toast.LENGTH_SHORT).show();
+                            progressBar.setVisibility(View.INVISIBLE);
+                           // Toast.makeText(AudioRecognition.this, "Initialized!", Toast.LENGTH_SHORT).show();
                             Log.i("Success", "Success");
                             host = jsonObject.getString("host");
                             accessKey = jsonObject.getString("access_key");
@@ -189,8 +237,8 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                     }
                 }
             };
-            LyricsRequest request = new LyricsRequest("http://eurus.96.lt/lyricsxapi.php", responseListener);
-            request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5,
+            LyricsRequest request = new LyricsRequest(FETCH_API, responseListener);
+            request.setRetryPolicy(new DefaultRetryPolicy(DefaultRetryPolicy.DEFAULT_TIMEOUT_MS, 5,
                     DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
             RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
             queue.add(request);
@@ -226,9 +274,23 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
             @Override
             public void onClick(View arg0) {
-                if (start()) {
+                menu.getItem(0).setVisible(false);
+                menu.getItem(0).setEnabled(false);
+                if(flag==0) {
+                    if (start()) {
+                        progressBar.setVisibility(View.VISIBLE);
+                        imageView.setImageResource(0);
+                        imageURL = "";
+                        //  Toast.makeText(AudioRecognition.this, "Listening!", Toast.LENGTH_LONG).show();
+                    }
+                }
+                else {
+                    stop();
+                    cancel();
+                    progressBar.setVisibility(View.INVISIBLE);
                     imageView.setImageResource(0);
-                    Toast.makeText(AudioRecognition.this, "Listening!", Toast.LENGTH_LONG).show();
+                    imageURL = "";
+
                 }
             }
         });
@@ -240,16 +302,57 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
             });
 
 
+
+        seekBar.setOnSeekBarChangeListener(
+                new SeekBar.OnSeekBarChangeListener() {
+                    int progress = 0;
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar,
+                                                  int progresValue, boolean fromUser) {
+                        progress = progresValue;
+                        imageView.setImageAlpha(progress);
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                        // Do something here,
+                        //if you want to do anything at the start of
+                        // touching the seekbar
+
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        // Display the value in textview
+                        imageView.setImageAlpha(progress);
+                        Log.i("progress"," "+progress);
+                    }
+                });
+
+        save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                seekBar.setVisibility(View.GONE);
+                save.setVisibility(View.GONE);
+                startBtn.setVisibility(View.VISIBLE);
+                listbtn.setVisibility(View.VISIBLE);
+            }
+        });
+
+
+
     }
 
 
     public boolean start() {
+
         if (!this.initState) {
             Toast.makeText(this, "Initializing! Please wait!", Toast.LENGTH_SHORT).show();
             return false;
         }
 
         if (!mProcessing) {
+            flag=1;
             mProcessing = true;
 //            mVolume.setText("");
             if (this.mClient == null || !this.mClient.startRecognize()) {
@@ -261,7 +364,8 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         return true;
     }
 
-  /*  protected void stop() {
+    protected void stop() {
+        flag=0;
         if (mProcessing && this.mClient != null) {
             this.mClient.stopRecordToRecognize();
         }
@@ -279,7 +383,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         }
     }
 
-    @Override
+   /* @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
@@ -297,12 +401,17 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
 
         try {
-
+            flag=0;
             JSONObject j = new JSONObject(result);
             JSONObject j1 = j.getJSONObject("status");
             int j2 = j1.getInt("code");
             if(j2 == 0){
                 JSONObject metadata = j.getJSONObject("metadata");
+
+                date=new Date(System.currentTimeMillis());
+
+                timestamp=sdf.format(date);
+                timestamp=timestamp.substring(0,timestamp.indexOf("."));
                 //
                 /*if (metadata.has("humming")) {
                     JSONArray hummings = metadata.getJSONArray("humming");
@@ -316,6 +425,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                     }
                 }*/
                 if (metadata.has("music")) {
+
                     JSONArray musics = metadata.getJSONArray("music");
                     for(int i=0; i<musics.length(); i++) {
                         JSONObject tt = (JSONObject) musics.get(i);
@@ -365,7 +475,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                             editor.putString("trackID", trackID + "\n\n" + prefs.getString("trackID", null));
                             editor.commit();
                         }*/
-
+                    progressBar.setVisibility(View.INVISIBLE);
                     getLyricsFunc(getUrl(title,artist),title,artist,title+" - "+artist);
                 }
 
@@ -386,10 +496,14 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                         tres = tres + (i+1) + ".  Title: " + title + "\n";
                     }
                 }*/
+             mResult.setTextIsSelectable(true);
 
             }
-            else
-                Toast.makeText(AudioRecognition.this,"Sorry! Music not found in Database",Toast.LENGTH_LONG).show();
+            else {
+                progressBar.setVisibility(View.INVISIBLE);
+                mResult.setText(mResult.getText()+"\n\n"+ "Sorry! Music not found in database");
+                //Toast.makeText(AudioRecognition.this, "Sorry! Music not found in Database", Toast.LENGTH_LONG).show();
+            }
 
         } catch (JSONException e) {
             Toast.makeText(AudioRecognition.this,"Sorry! Music not found",Toast.LENGTH_LONG).show();
@@ -403,7 +517,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
     public void onVolumeChanged(double volume) {
 
         long time = (System.currentTimeMillis() - startTime) / 1000;
-        mResult.setText("\n\n\n\n\n\n\n\n\n\nPress Left Button to start listening..\n\nYour lyrics will appear here\n\nTime Elapsed: "+time + " s");
+        mResult.setText("\n\n\n\n\n\n\n\nPress Left Button to start listening..\n\nYour lyrics will appear here\n\nTime Elapsed: "+time + " s");
 
     }
     private String getUrl(String song, String artist) {
@@ -419,7 +533,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
     private void getLyricsFunc(String URL, final String song, final String artist, final String ticker) {
 
-        Typeface typeface
+        final Typeface typeface
                 = Typeface.createFromAsset(
                 getAssets(), "Pangolin-Regular.ttf");
       //  mytv.setText("Song detected : Fetching Lyrics");
@@ -446,11 +560,15 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                     }
                     has_lyric="1";
                     backUpMyData();
+
                     progressDialog.dismiss();
+                    SpannableString ss1=  new SpannableString(ticker.toUpperCase());
+                    ss1.setSpan(new RelativeSizeSpan(1.3f), 0,ticker.length(), 0);
+
 
                     //  sendNotification(song,artist,ticker);
 
-                    mResult.setText(ticker.toUpperCase() + "\n\n" + lyric);
+                    mResult.setText(TextUtils.concat(ss1,  "\n\n" , lyric));
                 } catch (Exception e) {
                     e.printStackTrace();
                     Toast.makeText(AudioRecognition.this, "Catch: 404", Toast.LENGTH_SHORT).show();
@@ -520,7 +638,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                 listbtn.setVisibility(View.VISIBLE);
                 mResult.setText("\n\n\n\n\n\n\n\n\n\n\nPress Left Button to start listening..\n\nYour lyrics will appear here");
                 initialise();
-                Toast.makeText(this, "Initializing!", Toast.LENGTH_SHORT).show();
+              //  Toast.makeText(this, "Initializing!", Toast.LENGTH_SHORT).show();
                 String username;
                 username = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
                 username = username.substring(0, username.indexOf("@")).replace(".", "");
@@ -567,6 +685,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
 
     private void backupData(){
+
         Response.Listener<String> listener = new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -579,9 +698,9 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                 }
             }
         };
-        Log.i("All",title+" "+album+" "+artist+" "+trackID+" "+has_lyric);
+        Log.i("All",title+" "+album+" "+artist+" "+trackID+" "+has_lyric+" "+imageURL);
       //  Log.i("requests to server"," " +songs[i]);
-        BackupRestorePostRequest request = new BackupRestorePostRequest(backupToURL, prefs.getString("username",null), title,artist,album,trackID,has_lyric,imageURL, listener);
+        BackupRestorePostRequest request = new BackupRestorePostRequest(backupToURL, prefs.getString("username",null), title,artist,album,trackID,has_lyric,imageURL,timestamp, listener);
         request.setRetryPolicy(new DefaultRetryPolicy(DefaultRetryPolicy.DEFAULT_TIMEOUT_MS * 2, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
         queue.add(request);
@@ -597,7 +716,8 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                     JSONObject jsonObject=new JSONObject(response);
                     boolean flag= jsonObject.getBoolean("success");
                     if(flag){
-                        Toast.makeText(AudioRecognition.this, "Initialized!", Toast.LENGTH_SHORT).show();
+                        progressBar.setVisibility(View.GONE);
+                       // Toast.makeText(AudioRecognition.this, "Initialized!", Toast.LENGTH_SHORT).show();
                         Log.i("Success","Success");
                         host=jsonObject.getString("host");
                         accessKey=jsonObject.getString("access_key");
@@ -634,7 +754,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                 }
             }
         };
-        LyricsRequest request = new LyricsRequest("http://eurus.96.lt/lyricsxapi.php", responseListener);
+        LyricsRequest request = new LyricsRequest("http://eurus.000webhostapp.com/lyricsxapi.php", responseListener);
         request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
@@ -647,12 +767,20 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
             @Override
             public void onResponse(String response) {
                 try{
+                    menu.getItem(0).setVisible(true);
+                    menu.getItem(0).setEnabled(true);
                     JSONObject jsonObject=new JSONObject(response);
-                     imageURL=jsonObject.getString("success");
-                     imageURL=imageURL.replace("\\","");
+                    Log.i("imgres",""+jsonObject.getString("success"));
+                    if(jsonObject.getString("success")!=null || !jsonObject.getString("success").isEmpty()) {
+                        imageURL = jsonObject.getString("success");
+                        imageURL = imageURL.replace("\\", "");
+                        Picasso.with(AudioRecognition.this).load(imageURL).into(imageView);
+                    }
+                    else
+                        imageURL="https://deathgrind.club/uploads/posts/2017-09/1506510157_no_cover.png";
 
                   //  new doImg().execute();
-                    Picasso.with(AudioRecognition.this).load(imageURL).into(imageView);
+                    backUpMyData();
 
 
                 }catch (Exception e){
@@ -661,7 +789,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                 }
             }
         };
-        LyricsRequest request = new LyricsRequest("http://eurus.96.lt/spotify/finder.php?keyword="+ID, responseListener);
+        LyricsRequest request = new LyricsRequest("http://bboyrajibx.xyz/spotify/finder.php?keyword="+ID, responseListener);
         request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
@@ -718,22 +846,24 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
             progressDialog.dismiss();
 
 
+            SpannableString ss1=  new SpannableString(ticker.toUpperCase());
+            ss1.setSpan(new RelativeSizeSpan(1.3f), 0,ticker.length(), 0);
+
+
             if(words==null) {
                 has_lyric="0";
                 return;
             }
 
             else if(words.isEmpty()){
-                has_lyric="0";
-                mResult.setText("\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
-                backUpMyData();
+                mResult.setText(TextUtils.concat("\n\n\n\n\n\n\n\n",ss1,"\n\nSorry! No Lyrics Found\n\nTry using Manual Search"));
                 return;
             }
-
+            // sendNotification();
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
-                mResult.setText(ticker.toUpperCase()+"\n\n"+ Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT));
+                mResult.setText(TextUtils.concat(ss1,"\n\n",Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT)));
             else
-                mResult.setText(ticker.toUpperCase()+"\n\n"+Html.fromHtml(words));
+                mResult.setText(TextUtils.concat(ss1,"\n\n",Html.fromHtml(words)));
 
             has_lyric="1";
 
@@ -742,7 +872,36 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
     }
 
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_audio_recog, menu);
+        menu.getItem(0).setVisible(false);
+        menu.getItem(0).setEnabled(false);
+        this.menu=menu;
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+
+
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.edit) {
+            seekBar.setVisibility(View.VISIBLE);
+            save.setVisibility(View.VISIBLE);
+            startBtn.setVisibility(View.GONE);
+            listbtn.setVisibility(View.GONE);
+        }
+
+
+        return super.onOptionsItemSelected(item);
+    }
 
 
 }

@@ -2,20 +2,30 @@ package com.example.bboyrajib.lyricsx;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.TextUtils;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.android.volley.RequestQueue;
@@ -41,6 +51,11 @@ public class ViewLyrics extends AppCompatActivity {
     String artist,song,imageURL;
     ProgressBar progressBar;
     ImageView imageView;
+    SeekBar seekBar;
+    Button save;
+    CardView cardView;
+    SharedPreferences prefs;
+    Menu menu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +63,9 @@ public class ViewLyrics extends AppCompatActivity {
         setContentView(R.layout.activity_view_lyrics);
 
         imageView=(ImageView)findViewById(R.id.cardImageVL);
+        prefs= PreferenceManager.getDefaultSharedPreferences(ViewLyrics.this);
+        cardView=(CardView)findViewById(R.id.cvVL);
+
 
         Intent intent=getIntent();
          song=intent.getStringExtra("clickSong");
@@ -65,7 +83,7 @@ public class ViewLyrics extends AppCompatActivity {
 
         TextView tv = new TextView(getApplicationContext());
         tv.setText(actionBar.getTitle());
-        tv.setTextColor(Color.WHITE);
+        tv.setTextColor(Color.parseColor("#fcfcfc"));
         tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP,20);
         tv.setTypeface(typeface);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -75,7 +93,56 @@ public class ViewLyrics extends AppCompatActivity {
 
 
         lyrics.setTypeface(typeface);
+
+        if(prefs.getBoolean("isNightModeEnabledTrue", false)){
+            lyrics.setTextColor(Color.WHITE);
+            cardView.setBackgroundColor(Color.parseColor("#29282e"));
+        }
         progressBar = (ProgressBar) findViewById(R.id.progressbarVL);
+
+
+        seekBar=(SeekBar) findViewById(R.id.seekBarVL);
+        save=(Button)findViewById(R.id.saveVL);
+
+        save.setTypeface(typeface);
+        seekBar.setVisibility(View.GONE);
+        save.setVisibility(View.GONE);
+
+        imageView.setImageAlpha(seekBar.getProgress());
+
+        seekBar.setOnSeekBarChangeListener(
+                new SeekBar.OnSeekBarChangeListener() {
+                    int progress = 0;
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar,
+                                                  int progresValue, boolean fromUser) {
+                        progress = progresValue;
+                        imageView.setImageAlpha(progress);
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                        // Do something here,
+                        //if you want to do anything at the start of
+                        // touching the seekbar
+
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        // Display the value in textview
+                        imageView.setImageAlpha(progress);
+                        Log.i("progress"," "+progress);
+                    }
+                });
+        save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                seekBar.setVisibility(View.GONE);
+                save.setVisibility(View.GONE);
+
+            }
+        });
 
 
         String ticker=song+" - "+artist;
@@ -146,16 +213,29 @@ public class ViewLyrics extends AppCompatActivity {
             public void onResponse(String response) {
                 try {
                     //new doImg().execute();
-                    Picasso.with(ViewLyrics.this).load(imageURL).into(imageView);
+                    if("https://deathgrind.club/uploads/posts/2017-09/1506510157_no_cover.png".equals(imageURL)) {
+                        imageView.setImageResource(0);
+
+                    }
+                    else {
+                        Picasso.with(ViewLyrics.this).load(imageURL).into(imageView);
+                        menu.getItem(0).setVisible(true);
+                        menu.getItem(0).setEnabled(true);
+                    }
                     JSONObject jsonObject = new JSONObject(response);
                     String lyric = jsonObject.getString("lyric");
+                    SpannableString ss1=  new SpannableString(ticker.toUpperCase());
+                    ss1.setSpan(new RelativeSizeSpan(1.3f), 0,ticker.length(), 0);
+
+
                     if(lyric.isEmpty()){
                         new doIt().execute();
                     }
                     else {
                        // progressDialog.dismiss();
+                        lyrics.setTextIsSelectable(true);
                         progressBar.setVisibility(View.INVISIBLE);
-                        lyrics.setText(ticker.toUpperCase() + "\n\n" + lyric);
+                        lyrics.setText(TextUtils.concat(ss1,  "\n\n" , lyric));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -212,22 +292,59 @@ public class ViewLyrics extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
+
+
             String ticker=song+" - "+artist;
+
+            SpannableString ss1=  new SpannableString(ticker.toUpperCase());
+            ss1.setSpan(new RelativeSizeSpan(1.3f), 0,ticker.length(), 0);
            // progressDialog.dismiss();
             progressBar.setVisibility(View.INVISIBLE);
 
-            if(words==null || words.isEmpty()){
-                lyrics.setText("\n\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics found for this song");
+            if(words==null)
+                return;
+
+            else if(words.isEmpty()){
+                lyrics.setText(TextUtils.concat("\n\n\n\n\n\n\n\n",ss1,"\n\nSorry! No Lyrics found for this song!"));
                 return;
             }
-
-
-           // sendNotification();
+            // sendNotification();
+            lyrics.setTextIsSelectable(true);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
-                lyrics.setText(ticker.toUpperCase()+"\n\n"+ Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT));
+                lyrics.setText(TextUtils.concat(ss1,"\n\n",Html.fromHtml(words,Html.FROM_HTML_MODE_COMPACT)));
             else
-                lyrics.setText(ticker.toUpperCase()+"\n\n"+Html.fromHtml(words));
+                lyrics.setText(TextUtils.concat(ss1,"\n\n",Html.fromHtml(words)));
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_audio_recog, menu);
+        this.menu=menu;
+        menu.getItem(0).setVisible(false);
+        menu.getItem(0).setEnabled(false);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+
+
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.edit) {
+            seekBar.setVisibility(View.VISIBLE);
+            save.setVisibility(View.VISIBLE);
+
+        }
+
+
+        return super.onOptionsItemSelected(item);
     }
 
 

@@ -26,6 +26,9 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.v7.app.NotificationCompat;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.TextUtils;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.support.v4.content.LocalBroadcastManager;
 import android.widget.Toast;
@@ -218,10 +221,15 @@ public class NLService extends NotificationListenerService {
 
                     }
                     else {
+
+                        SpannableString ss1=  new SpannableString(ticker.toUpperCase());
+                        ss1.setSpan(new RelativeSizeSpan(1.3f), 0,ticker.length(), 0);
+
+
                         //if(Utils.isAppIsInBackground(getApplicationContext())) Log.i("TAG","bg");
                             sendNotification();
                         SharedPreferences.Editor editor=prefs.edit();
-                        editor.putString("lyrics",ticker.toUpperCase() + "\n\n" + lyric).apply();
+                        editor.putString("lyrics",(TextUtils.concat(ss1,  "\n\n" , lyric).toString())).apply();
                        // Log.i("ticker",ticker+"");
                        // msgrcv.putExtra("lyrics",ticker.toUpperCase() + "\n\n" + lyric);
                     }
@@ -382,24 +390,27 @@ public class NLService extends NotificationListenerService {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
+            SpannableString ss1=  new SpannableString(tick.toUpperCase());
+            ss1.setSpan(new RelativeSizeSpan(1.3f), 0,tick.length(), 0);
+
             if(words==null)
                 return;
 
             else if(words.isEmpty()){
                 SharedPreferences.Editor editor=prefs.edit();
-                editor.putString("lyrics","\n\n\n\n\n\n\n\n\n\n"+tick.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
+                editor.putString("lyrics",TextUtils.concat("\n\n\n\n\n\n\n\n\n\n",ss1,"\n\nSorry! No Lyrics Found\n\nTry using Manual Search").toString());
                 editor.apply();
                // msgrcv.putExtra("lyrics","\n\n\n\n\n\n\n\n\n\n"+ticker.toUpperCase()+"\n\nSorry! No Lyrics Found\n\nTry using Manual Search");
                 return;
             }
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 SharedPreferences.Editor editor = prefs.edit();
-                editor.putString("lyrics",tick.toUpperCase() + "\n\n" + Html.fromHtml(words, Html.FROM_HTML_MODE_COMPACT)).apply();
+                editor.putString("lyrics",TextUtils.concat(ss1, "\n\n" , Html.fromHtml(words, Html.FROM_HTML_MODE_COMPACT)).toString()).apply();
                // msgrcv.putExtra("lyrics",ticker.toUpperCase() + "\n\n" + Html.fromHtml(words, Html.FROM_HTML_MODE_COMPACT));
             }
             else {
                 SharedPreferences.Editor editor=prefs.edit();
-                editor.putString("lyrics",tick.toUpperCase() + "\n\n" + Html.fromHtml(words)).apply();
+                editor.putString("lyrics",TextUtils.concat(ss1, "\n\n" , Html.fromHtml(words)).toString()).apply();
                // msgrcv.putExtra("lyrics",ticker.toUpperCase() + "\n\n" + Html.fromHtml(words));
             }
             //if(Utils.isAppIsInBackground(NLService.this)) Log.i("TAG","bg");

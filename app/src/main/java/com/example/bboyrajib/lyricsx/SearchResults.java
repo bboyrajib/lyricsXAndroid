@@ -1,10 +1,13 @@
 package com.example.bboyrajib.lyricsx;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -40,6 +43,7 @@ public class SearchResults extends AppCompatActivity {
     private List<ListItem> listItems;
     String song,artist;
     JSONArray tracks,artists,albums,uris,images;
+    SharedPreferences prefs;
    // String [] songs,artists,albums,uris,images;
 
     @Override
@@ -52,10 +56,11 @@ public class SearchResults extends AppCompatActivity {
                 getAssets(), "Pangolin-Regular.ttf");
 
         ActionBar actionBar=getSupportActionBar();
+        relativeLayout=(RelativeLayout)findViewById(R.id.relSR);
 
         TextView tv = new TextView(getApplicationContext());
         tv.setText(actionBar.getTitle());
-        tv.setTextColor(Color.WHITE);
+        tv.setTextColor(Color.parseColor("#fcfcfc"));
         tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP,20);
         tv.setTypeface(typeface);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -68,8 +73,12 @@ public class SearchResults extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
+        prefs= PreferenceManager.getDefaultSharedPreferences(SearchResults.this);
+        progressBar = (ProgressBar) findViewById(R.id.progressbarSR);
         relativeLayout=(RelativeLayout)findViewById(R.id.relSR);
         listItems=new ArrayList<>();
+
+
 
         textView=(TextView)findViewById(R.id.emptyresult);
         Typeface typeface
@@ -77,7 +86,7 @@ public class SearchResults extends AppCompatActivity {
                 getAssets(), "Pangolin-Regular.ttf");
         textView.setText("\n\n\n\n\n\n\n\n\n\n\nSearching database!");
         textView.setTypeface(typeface);
-        progressBar = (ProgressBar) findViewById(R.id.progressbarSR);
+
 
         progressBar.setVisibility(View.VISIBLE);
 
@@ -99,9 +108,9 @@ public class SearchResults extends AppCompatActivity {
         if(artist!=null)
             artist=artist.replaceAll("\\s","+");
         if(artist==null || artist.isEmpty() || "+".equals(artist))
-             URL="http://eurus.96.lt/spotify/tracks.php?song="+song.toLowerCase();
+             URL="http://bboyrajibx.xyz/spotify/tracks.php?song="+song.toLowerCase();
         else
-             URL="http://eurus.96.lt/spotify/tracks.php?song="+song.toLowerCase()+"&artist="+artist.toLowerCase();
+             URL="http://bboyrajibx.xyz/spotify/tracks.php?song="+song.toLowerCase()+"&artist="+artist.toLowerCase();
         Log.i("URL",URL);
 
         Response.Listener<String> responseListener = new Response.Listener<String>() {
@@ -111,6 +120,7 @@ public class SearchResults extends AppCompatActivity {
                     progressBar.setVisibility(View.INVISIBLE);
                     JSONObject jsonObject=new JSONObject(response);
                     if(jsonObject.getBoolean("success")){
+
                         textView.setText("\n\n\n\n\n\n\n\n\n\n\nLoading search results!\n\nPlease wait!");
                        // textView.setVisibility(View.GONE);
                          tracks=jsonObject.getJSONArray("track");
@@ -121,7 +131,7 @@ public class SearchResults extends AppCompatActivity {
                       //  Log.i("tag",artist.get(0).toString()+"");
                         for(int i=0;i<tracks.length();i++){
 
-                            ListItem listItem=new ListItem(tracks.get(i).toString(),artists.get(i).toString(),albums.get(i).toString(),uris.get(i).toString(),"0","0",images.get(i).toString().replace("\\",""));
+                            ListItem listItem=new ListItem(tracks.get(i).toString(),artists.get(i).toString(),albums.get(i).toString(),uris.get(i).toString(),"0","0",images.get(i).toString().replace("\\",""),"0");
                             // Log.i("test",songs[i]+" "+artists[i]);
                             listItems.add(listItem);
 
@@ -129,55 +139,60 @@ public class SearchResults extends AppCompatActivity {
 
 
                         textView.setVisibility(View.GONE);
-                        RecyclerViewAdapter.RecyclerViewLongClickListener longClickListener=new RecyclerViewAdapter.RecyclerViewLongClickListener() {
-                            @Override
-                            public void onLongClick(View v, int position) {
-                                if(appInstalledOrNot("com.spotify.music")) {
-                                    Intent intent=null;
+
+
+                            RecyclerViewAdapter.RecyclerViewLongClickListener longClickListener = new RecyclerViewAdapter.RecyclerViewLongClickListener() {
+                                @Override
+                                public void onLongClick(View v, int position) {
+                                    if (appInstalledOrNot("com.spotify.music")) {
+                                        Intent intent = null;
+                                        try {
+                                            //  Log.i("tag",uris.get(position).toString().substring(uris.get(position).toString().lastIndexOf(":")));
+                                            intent = new Intent(Intent.ACTION_VIEW,
+                                                    Uri.parse(uris.get(position).toString()));
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                        startActivity(intent);
+                                    } else {
+                                        try {
+                                            startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("http://open.spotify.com/track/" + uris.get(position).toString().substring(uris.get(position).toString().lastIndexOf(":") + 1))));
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                    return;
+
+                                }
+                            };
+
+                            RecyclerViewAdapter.RecyclerViewClickListener listener = new RecyclerViewAdapter.RecyclerViewClickListener() {
+                                @Override
+                                public void onClick(View view, int position) {
+
+                                    Intent intent = new Intent(SearchResults.this, ViewLyrics.class);
                                     try {
-                                      //  Log.i("tag",uris.get(position).toString().substring(uris.get(position).toString().lastIndexOf(":")));
-                                        intent = new Intent(Intent.ACTION_VIEW,
-                                                Uri.parse( uris.get(position).toString()));
+                                        intent.putExtra("clickSong", tracks.get(position).toString());
+                                        intent.putExtra("clickArtist", artists.get(position).toString());
+                                        intent.putExtra("imageURL", images.get(position).toString());
+                                        startActivity(intent);
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
-                                    startActivity(intent);
+
                                 }
-                                else {
-                                    try {
-                                        startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("http://open.spotify.com/track/" + uris.get(position).toString().substring(uris.get(position).toString().lastIndexOf(":")+1))));
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                return;
+                            };
 
-                            }
-                        };
+                            adapter = new RecyclerViewAdapter(listItems, getApplicationContext(), listener, longClickListener);
+                            recyclerView.setAdapter(adapter);
 
-                        RecyclerViewAdapter.RecyclerViewClickListener listener=new RecyclerViewAdapter.RecyclerViewClickListener() {
-                            @Override
-                            public void onClick(View view, int position) {
-
-                                Intent intent=new Intent(SearchResults.this,ViewLyrics.class);
-                                try {
-                                    intent.putExtra("clickSong",tracks.get(position).toString());
-                                    intent.putExtra("clickArtist",artists.get(position).toString());
-                                    intent.putExtra("imageURL",images.get(position).toString());
-                                    startActivity(intent);
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-
-                            }
-                        };
-
-                        adapter=new RecyclerViewAdapter(listItems,getApplicationContext(),listener,longClickListener);
-                        recyclerView.setAdapter(adapter);
 
                         adapter.notifyDataSetChanged();
 
-
+                      /*  if(prefs.getBoolean("isNightModeEnabledTrue",false)){
+                            relativeLayout.setBackgroundColor(Color.WHITE);
+                            progressBar.getIndeterminateDrawable().setColorFilter(Color.parseColor("#311b92"), PorterDuff.Mode.SRC_IN);
+                        }*/
 
                     }
                     else

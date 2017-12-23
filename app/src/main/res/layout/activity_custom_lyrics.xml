@@ -2,74 +2,82 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#311b92"
+    android:id="@+id/custRel">
 
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="1dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        app:cardCornerRadius="10dp"
+        app:cardElevation="5dp"
+        android:layout_margin="5dp"
+        android:id="@+id/cvCS">
 
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+
         android:id="@+id/linearLayout"
-        android:layout_marginTop="15dp">
+        android:layout_marginTop="30dp">
 
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="5dp"
-        android:id="@+id/tilsong"
-        android:layout_marginTop="15dp"
-        app:errorEnabled="true">
 
-    <android.support.design.widget.TextInputEditText
-        android:id="@+id/song"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="SONG"
-        android:textAllCaps="true"
-        android:inputType="textPersonName"
-        android:textColor="#479194"
-        android:textColorHint="#479194"
-        android:layout_marginTop="20dp"
 
-        android:layout_alignParentTop="true"
-        android:layout_alignStart="@+id/artist"
-        android:layout_alignEnd="@+id/artist"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"/>
-    </android.support.design.widget.TextInputLayout>
 
-        <android.support.design.widget.TextInputLayout
+        <com.rengwuxian.materialedittext.MaterialEditText
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/tilart"
-            android:layout_margin="5dp"
-            >
-    <android.support.design.widget.TextInputEditText
-        android:id="@+id/artist"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
+            android:layout_height="wrap_content"
+            android:hint="SONG"
+            android:id="@+id/song"
+            app:met_underlineColor="#1a237e"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:inputType="textCapCharacters"
+            app:met_textColor="#534bae"
+            app:met_textColorHint="#534bae"
+            app:met_floatingLabel="highlight"
+            app:met_baseColor="#534bae"
+            app:met_primaryColor="#1a237e"
+            app:met_errorColor="#ff0000"
+            app:met_floatingLabelPadding="5dp"/>
 
-        android:inputType="textPersonName"
-        android:textColor="#479194"
-        android:textAllCaps="true"
-
-        android:hint="ARTIST (OPTIONAL)"
-        android:textColorHint="#479194"
-        android:layout_marginTop="15dp"
-        android:layout_below="@+id/song"
-        android:layout_alignEnd="@+id/scrollView2"
-        android:layout_alignStart="@+id/scrollView2"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"/>
-        </android.support.design.widget.TextInputLayout>
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:id="@+id/artist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="ARTIST (OPTIONAL)"
+            app:met_underlineColor="#1a237e"
+            android:inputType="textCapCharacters"
+            android:layout_marginTop="30dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginLeft="20dp"
+            android:paddingLeft="10dp"
+            app:met_textColor="#534bae"
+            android:paddingRight="10dp"
+            app:met_textColorHint="#534bae"
+            app:met_floatingLabel="highlight"
+            app:met_baseColor="#534bae"
+            app:met_primaryColor="#1a237e"
+            app:met_errorColor="#ff0000"
+            app:met_floatingLabelPadding="5dp"
+            />
 
 
     </LinearLayout>
     <TextView
         android:id="@+id/getLyrics"
-        android:background="#479194"
+        android:background="#534bae"
         android:textColor="#ffffff"
         android:textAllCaps="true"
         android:textStyle="bold"
@@ -92,6 +100,9 @@
         android:textStyle="bold"
         android:textAlignment="center"
         android:id="@+id/getLyrics2"/>
+
+    </RelativeLayout>
+    </android.support.v7.widget.CardView>
 
 
 </RelativeLayout>

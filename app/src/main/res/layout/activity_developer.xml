@@ -5,8 +5,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.bboyrajib.lyricsx.DeveloperActivity"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#311b92">
 
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="1dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        app:cardCornerRadius="10dp"
+        android:id="@+id/cvDev"
+        app:cardElevation="5dp"
+        android:layout_margin="5dp">
+    <RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
     <ImageView
         android:id="@+id/imageView2"
         android:layout_width="161dp"
@@ -22,8 +37,9 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+
         android:text="Rajib Roy"
-        android:textColor="#000000"
+        android:textColor="#1a237e"
         android:textSize="25dp"
         android:textStyle="bold"
         tools:layout_editor_absoluteX="152dp"
@@ -38,7 +54,7 @@
         android:layout_height="wrap_content"
         android:text="Dept.of Electrical Engineering"
         android:textSize="18dp"
-        android:textColor="#000000"
+        android:textColor="#1a237e"
         android:textStyle="italic"
         tools:layout_editor_absoluteX="91dp"
         tools:layout_editor_absoluteY="323dp"
@@ -50,7 +66,7 @@
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#000000"
+        android:textColor="#1a237e"
         android:textSize="20dp"
         android:text="National Institute of Technology, Durgapur"
         tools:layout_editor_absoluteX="17dp"
@@ -82,4 +98,6 @@
         android:layout_alignTop="@+id/fb"
         android:layout_alignEnd="@+id/imageView2"
         android:layout_marginTop="11dp" />
+    </RelativeLayout>
+    </android.support.v7.widget.CardView>
 </RelativeLayout>

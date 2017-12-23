@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#311b92"
     tools:context="com.example.bboyrajib.lyricsx.ViewLyrics">
 
     <ProgressBar
@@ -15,17 +16,23 @@
         android:max="100"
         android:backgroundTint="#ffffff"
 
-        android:indeterminateTint="#1a09d6"
-        android:layout_marginTop="-6dp"/>
+        android:indeterminateTint="#ffffff"
+        android:layout_marginTop="-5dp"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_weight="1"
         android:layout_marginBottom="1dp"
         android:layout_marginTop="2dp"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         app:cardCornerRadius="10dp"
+        android:id="@+id/cvVL"
         app:cardElevation="5dp"
         android:layout_margin="10dp"
         app:cardBackgroundColor="#ffffff"
@@ -35,7 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:alpha="0.1"/>
+            android:alpha="1"/>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -46,13 +53,53 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/viewLyrics"
-            android:textSize="18dp"
-            android:textColor="#479194"
+            android:textSize="20dp"
+            android:textColor="#1a237e"
             android:textAlignment="center"
             android:padding="3dp"/>
 
     </ScrollView>
 
     </android.support.v7.widget.CardView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentStart="true"
+        >
+
+        <SeekBar
+            android:id="@+id/seekBarVL"
+            style="@style/MyMaterialTheme.Base"
+            android:layout_marginTop="35dp"
+            android:maxHeight="3dp"
+            android:minHeight="3dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="113"
+            android:progress="40"
+            android:thumbTint="#ff5722"
+            android:thumb="@drawable/thumb"
+            android:progressDrawable="@drawable/opacity_control"
+            />
+        <Button
+            android:id="@+id/saveVL"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="#ffffff"
+            android:layout_weight="0.35"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_margin="20dp"
+            android:text="DONE"
+            android:textStyle="bold"
+            android:textColor="#1a237e"
+            />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </RelativeLayout>
