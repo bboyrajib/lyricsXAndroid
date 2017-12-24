@@ -6,7 +6,12 @@
         android:id="@+id/edit"
         android:icon="@drawable/eye"
         android:title="Change Opacity"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/listAR"
+        android:icon="@drawable/listwhite"
+        android:title="Change Opacity"
+        app:showAsAction="always"/>
 
 
 </menu>

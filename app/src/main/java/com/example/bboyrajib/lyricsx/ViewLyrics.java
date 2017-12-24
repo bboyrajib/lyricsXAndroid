@@ -324,6 +324,8 @@ public class ViewLyrics extends AppCompatActivity {
         this.menu=menu;
         menu.getItem(0).setVisible(false);
         menu.getItem(0).setEnabled(false);
+        menu.getItem(1).setVisible(false);
+        menu.getItem(1).setEnabled(false);
         return true;
     }
 

@@ -85,6 +85,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         notifyDataSetChanged();
     }
 
+
+
     @Override
     public int getItemCount() {
         return listItems.size();

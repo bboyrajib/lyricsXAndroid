@@ -98,7 +98,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
     String FETCH_API="http://bboyrajibx.xyz/lyricsxapi.php";
     String createTableURL="http://bboyrajibx.xyz/lyricsx_create_table.php";
     String backupToURL="http://bboyrajibx.xyz/lyricsx_backup_to_table.php";
-    String restoreFromURL="http://bboyrajibx.xyzm/lyricsx_restore_from_table.php";
+    String restoreFromURL="http://bboyrajibx.xyz/lyricsx_restore_from_table.php";
   //  Set<String> set;
     //Set<String> fetch;
 
@@ -174,11 +174,11 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
 
          startBtn = (Button) findViewById(R.id.start);
-         listbtn = (Button) findViewById(R.id.list);
+       //  listbtn = (Button) findViewById(R.id.list);
 
         if(!prefs.getBoolean("isAccountSelected",false)) {
             startBtn.setVisibility(View.GONE);
-            listbtn.setVisibility(View.GONE);
+
             mResult.setText("\n\n\n\n\n\n\n\n\n\n\nPlease select an account to continue!");
             pickUserAccount();
         }
@@ -294,12 +294,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                 }
             }
         });
-            listbtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startActivity(new Intent(AudioRecognition.this, SongListRecyclerView.class));
-                }
-            });
+
 
 
 
@@ -335,7 +330,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                 seekBar.setVisibility(View.GONE);
                 save.setVisibility(View.GONE);
                 startBtn.setVisibility(View.VISIBLE);
-                listbtn.setVisibility(View.VISIBLE);
+
             }
         });
 
@@ -517,7 +512,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
     public void onVolumeChanged(double volume) {
 
         long time = (System.currentTimeMillis() - startTime) / 1000;
-        mResult.setText("\n\n\n\n\n\n\n\nPress Left Button to start listening..\n\nYour lyrics will appear here\n\nTime Elapsed: "+time + " s");
+        mResult.setText("\n\n\n\n\n\n\n\nPress Button to start listening..\n\nYour lyrics will appear here\n\nTime Elapsed: "+time + " s");
 
     }
     private String getUrl(String song, String artist) {
@@ -636,7 +631,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
             if (resultCode == RESULT_OK) {
                 startBtn.setVisibility(View.VISIBLE);
                 listbtn.setVisibility(View.VISIBLE);
-                mResult.setText("\n\n\n\n\n\n\n\n\n\n\nPress Left Button to start listening..\n\nYour lyrics will appear here");
+                mResult.setText("\n\n\n\n\n\n\n\n\n\n\nPress Button to start listening..\n\nYour lyrics will appear here");
                 initialise();
               //  Toast.makeText(this, "Initializing!", Toast.LENGTH_SHORT).show();
                 String username;
@@ -896,7 +891,9 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
             seekBar.setVisibility(View.VISIBLE);
             save.setVisibility(View.VISIBLE);
             startBtn.setVisibility(View.GONE);
-            listbtn.setVisibility(View.GONE);
+        }
+        if(id == R.id.listAR){
+            startActivity(new Intent(AudioRecognition.this, SongListRecyclerView.class));
         }
 
 

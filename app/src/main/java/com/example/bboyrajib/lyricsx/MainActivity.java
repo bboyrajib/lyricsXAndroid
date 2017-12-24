@@ -37,6 +37,7 @@ import android.text.TextUtils;
 import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -70,7 +71,7 @@ import java.util.regex.Pattern;
 public class MainActivity extends AppCompatActivity {
 
 
-    String APP_VERSION="1.2.2";
+    String APP_VERSION="1.2.4";
     String checkVersionURL="http://bboyrajibx.xyz/checkVersion.php";
     int ID;
     TextView lyrics;
@@ -540,6 +541,7 @@ public class MainActivity extends AppCompatActivity {
                         else {
                             menu.getItem(1).setVisible(true);
                             menu.getItem(1).setEnabled(true);
+
                         }
                     }
 

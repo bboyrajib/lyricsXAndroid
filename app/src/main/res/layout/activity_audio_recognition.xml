@@ -59,7 +59,7 @@
             android:layout_height="wrap_content"
             android:textColor="#1a237e"
             android:textAlignment="center"
-            android:text="\n\n\n\n\n\n\n\nPress Left Button to start listening..\n\nYour lyrics will appear here"
+            android:text="\n\n\n\n\n\n\n\nPress Button to start listening..\n\nYour lyrics will appear here"
             android:textSize="20dp"
             android:textStyle="bold"
             android:layout_marginTop="10dp"
@@ -123,7 +123,7 @@
             android:orientation="horizontal"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
-
+            android:gravity="center"
 
             android:layout_centerHorizontal="true">
 
@@ -131,27 +131,16 @@
 
             <Button
                 android:id="@+id/start"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentStart="true"
                 android:layout_marginBottom="11dp"
-                android:layout_marginStart="103dp"
                 android:background="@drawable/recognisewhite"
                 android:layout_marginTop="10dp"
 
                 android:elevation="10dp" />
 
-            <Button
-                android:id="@+id/list"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_alignBottom="@+id/start"
-                android:layout_marginStart="95dp"
-                android:layout_toEndOf="@+id/start"
-                android:background="@drawable/listwhite"
-                android:elevation="10dp"
-                android:layout_marginTop="12dp"/>
         </LinearLayout>
     </RelativeLayout>
 

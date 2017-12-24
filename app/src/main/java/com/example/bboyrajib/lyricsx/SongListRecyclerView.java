@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -22,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -520,6 +522,7 @@ public class SongListRecyclerView extends AppCompatActivity {
         SpannableString spannableString=Utils.typefaceColor("#1a237e",cs);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(Utils.typeface(typeface,spannableString));
+
         if(has_lyric.equals("0") && has_ID.equals("NOID")){
             builder.setMessage(Utils.typeface(typeface," Sorry! No Lyric or Spotify ID found!"))
                     .setCancelable(true)
@@ -635,6 +638,7 @@ public class SongListRecyclerView extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_song_list, menu);
+
         return true;
     }
 
