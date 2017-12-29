@@ -8,9 +8,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -93,15 +92,23 @@
         <activity
             android:name=".ViewLyrics"
             android:label="LyricsX : View Lyrics"
-            android:screenOrientation="portrait"></activity>
-        <activity android:name=".SearchResults"
-            android:screenOrientation="portrait"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".SearchResults"
             android:label="LyricsX : Search Results"
-            android:parentActivityName=".CustomLyrics">
+            android:parentActivityName=".CustomLyrics"
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.bboyrajib.lyricsx.CustomLyrics" />
         </activity>
+        <activity android:name=".CopyrightActivity"
+            android:label="LyricsX : Copyright"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.bboyrajib.lyricsx.MainActivity"/></activity>
     </application>
 
 </manifest>

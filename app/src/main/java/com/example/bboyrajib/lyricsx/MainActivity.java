@@ -71,7 +71,7 @@ import java.util.regex.Pattern;
 public class MainActivity extends AppCompatActivity {
 
 
-    String APP_VERSION="1.2.4";
+    String APP_VERSION="1.3.5";
     String checkVersionURL="http://bboyrajibx.xyz/checkVersion.php";
     int ID;
     TextView lyrics;
@@ -258,6 +258,19 @@ public class MainActivity extends AppCompatActivity {
         if(id==R.id.download){
             new DownloadFileFromURL().execute("http://bboyrajib.5gbfree.com/LyricsX.apk");
            // startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("https://bboyrajibx.xyz/LyricsX.apk")));
+        }
+
+        if(id == R.id.action_share){
+            Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+            sharingIntent.setType("text/plain");
+            String shareBody = "Download LyricsX and instantly get the lyrics of the currently playing song on your device.\nSupported players: Spotify, Google Play Music.\nLightweight, No Ads and it's free!\nDownload here: http://bboyrajib.5gbfree.com/LyricsX.apk";
+            sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "LyricsX : Lyrics at your fingertips!");
+            sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody);
+            startActivity(Intent.createChooser(sharingIntent, "Tell your friends about it via"));
+        }
+
+        if(id == R.id.action_pp){
+            startActivity(new Intent(MainActivity.this,CopyrightActivity.class));
         }
 
         return super.onOptionsItemSelected(item);

@@ -14,6 +14,12 @@ public class BackupRestorePostRequest extends StringRequest {
 
     private Map<String, String> params;
 
+    public BackupRestorePostRequest(String URL,String ID,int nothing,Response.Listener<String> listener) {
+        super(Method.POST, URL, listener, null);
+        params = new HashMap<>();
+        params.put("ID",ID);
+    }
+
     public BackupRestorePostRequest(String URL,String username,Response.Listener<String> listener) {
         super(Method.POST, URL, listener, null);
         params = new HashMap<>();

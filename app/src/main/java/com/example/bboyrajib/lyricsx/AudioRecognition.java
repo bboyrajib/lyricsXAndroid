@@ -37,11 +37,13 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -62,6 +64,10 @@ import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -86,6 +92,10 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
     private long startTime = 0;
     private long stopTime = 0;
 
+    ImageView coloredring;
+
+    String DB_ID;
+
     Menu menu;
 
     String timestamp;
@@ -93,7 +103,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
     Date date;
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
 
-    String title,artist,album,trackID,has_lyric="0",imageURL;
+    String title,artist,album,trackID,has_lyric="0",imageURL,vidID;
     RelativeLayout relativeLayout;
     String FETCH_API="http://bboyrajibx.xyz/lyricsxapi.php";
     String createTableURL="http://bboyrajibx.xyz/lyricsx_create_table.php";
@@ -104,7 +114,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
     ProgressDialog progressDialog;
     ProgressBar progressBar;
-    Button startBtn,listbtn;
+    Button startBtn,listbtn,spotify,youtube;
 
     SeekBar seekBar;
     Button save;
@@ -120,7 +130,14 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         setContentView(R.layout.activity_audio_recognition);
         progressBar=(ProgressBar)findViewById(R.id.progressbarAR);
 
+        spotify=(Button)findViewById(R.id.spotify);
+        youtube=(Button)findViewById(R.id.yt);
+        coloredring=(ImageView)findViewById(R.id.coloredring);
 
+      //  spotify.setVisibility(View.GONE);
+      //  youtube.setVisibility(View.GONE);
+        spotify.setEnabled(false);
+        youtube.setEnabled(false);
 
       /*  path = Environment.getExternalStorageDirectory().toString()
                 + "/acrcloud/model";
@@ -178,7 +195,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
         if(!prefs.getBoolean("isAccountSelected",false)) {
             startBtn.setVisibility(View.GONE);
-
+            coloredring.setVisibility(View.GONE);
             mResult.setText("\n\n\n\n\n\n\n\n\n\n\nPlease select an account to continue!");
             pickUserAccount();
         }
@@ -205,6 +222,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                             host = jsonObject.getString("host");
                             accessKey = jsonObject.getString("access_key");
                             accessSecret = jsonObject.getString("access_secret");
+                            DB_ID=jsonObject.getString("ID");
                             Log.i("Success", host);
                             Log.i("Success", accessKey);
                             Log.i("Success", accessSecret);
@@ -224,9 +242,9 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                             // the function initWithConfig is used to load offline db, and it may cost long time.
                             initState = mClient.initWithConfig(mConfig);
                             Log.i("init", "" + initState);
-                            if (initState) {
+                          /*  if (initState) {
                                 mClient.startPreRecord(3000); //start prerecord, you can call "this.mClient.stopPreRecord()" to stop prerecord.
-                            }
+                            }*/
 
 
                         }
@@ -270,10 +288,29 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         if (this.initState) {
             this.mClient.startPreRecord(3000); //start prerecord, you can call "this.mClient.stopPreRecord()" to stop prerecord.
         }*/
+
+        final Animation animation = AnimationUtils.loadAnimation(getApplicationContext(),
+                R.anim.rotate);
+
+
         startBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View arg0) {
+              //  spotify.setVisibility(View.GONE);
+              //  youtube.setVisibility(View.GONE);
+                coloredring.startAnimation(animation);
+                spotify.setEnabled(false);
+                youtube.setEnabled(false);
+                spotify.setAlpha(0);
+                youtube.setAlpha(0);
+
+
+                if(initState) {
+                    mClient.startPreRecord(3000);
+                    mClient.startRecognize();
+                }
+
                 menu.getItem(0).setVisible(false);
                 menu.getItem(0).setEnabled(false);
                 if(flag==0) {
@@ -327,9 +364,31 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                coloredring.setVisibility(View.VISIBLE);
                 seekBar.setVisibility(View.GONE);
                 save.setVisibility(View.GONE);
                 startBtn.setVisibility(View.VISIBLE);
+                if("NOID".equals(trackID)) {
+                    spotify.setVisibility(View.VISIBLE);
+                    spotify.setEnabled(false);
+                    spotify.setAlpha(0.5f);
+                }
+                if("NOID".equals(vidID)){
+                    youtube.setVisibility(View.VISIBLE);
+                    youtube.setEnabled(false);
+                    youtube.setAlpha(0.5f);
+                }
+                if(!("NOID".equals(trackID))) {
+                    spotify.setVisibility(View.VISIBLE);
+                    spotify.setEnabled(true);
+                    spotify.setAlpha(1);
+                }
+                if(!("NOID".equals(vidID))){
+                    youtube.setVisibility(View.VISIBLE);
+                    youtube.setEnabled(false);
+                    youtube.setAlpha(1);
+                }
+
 
             }
         });
@@ -354,9 +413,29 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                 mProcessing = false;
                 mResult.setText("start error!");
             }
+            Log.i("start",initState+"");
+
             startTime = System.currentTimeMillis();
         }
         return true;
+    }
+
+    public void continueRec(){
+
+        if (!this.initState) {
+            Toast.makeText(this, "init error", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!mProcessing) {
+            mProcessing = true;
+
+            if (this.mClient == null || !this.mClient.startRecognize()) {
+                mProcessing = false;
+                mResult.setText("start error!");
+            }
+
+        }
     }
 
     protected void stop() {
@@ -373,8 +452,8 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         if (mProcessing && this.mClient != null) {
             mProcessing = false;
             this.mClient.cancel();
-            tv_time.setText("");
-            mResult.setText("");
+           // tv_time.setText("");
+          //  mResult.setText("");
         }
     }
 
@@ -391,17 +470,28 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
         if (this.mClient != null) {
             this.mClient.cancel();
             mProcessing = false;
+
+
         }
 
 
 
         try {
+
+
+
             flag=0;
             JSONObject j = new JSONObject(result);
             JSONObject j1 = j.getJSONObject("status");
             int j2 = j1.getInt("code");
+            Log.i("error",j.toString());
             if(j2 == 0){
+
+                coloredring.clearAnimation();
+
                 JSONObject metadata = j.getJSONObject("metadata");
+
+                Log.i("res",metadata.toString());
 
                 date=new Date(System.currentTimeMillis());
 
@@ -422,8 +512,9 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                 if (metadata.has("music")) {
 
                     JSONArray musics = metadata.getJSONArray("music");
-                    for(int i=0; i<musics.length(); i++) {
-                        JSONObject tt = (JSONObject) musics.get(i);
+                   // for(int i=0; i<musics.length(); i++) {
+                        JSONObject tt = (JSONObject) musics.get(0);
+                        Log.i("tt",tt.toString()+"");
                         title = tt.getString("title");
                         JSONArray artistt = tt.getJSONArray("artists");
                         JSONObject art = (JSONObject) artistt.get(0);
@@ -438,15 +529,58 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                                 JSONObject trackObject = spotifyObject.getJSONObject("track");
                                 trackID = trackObject.getString("id");
                                 getImageUrl(trackID);
+                                spotify.setEnabled(true);
+                                spotify.setAlpha(1);
+                                spotify.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        if(appInstalledOrNot("com.spotify.music")) {
+                                            Intent intent = new Intent(Intent.ACTION_VIEW,
+                                                    Uri.parse("spotify:track:" + trackID));
+                                            startActivity(intent);
+                                        }
+                                        else
+                                            startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("http://open.spotify.com/track/"+trackID)));
+                                    }
+                                });
                             }
-                            else {
+                            if(externalmetadataObject.has("youtube")){
+                                JSONObject ytObject=externalmetadataObject.getJSONObject("youtube");
+                                vidID=ytObject.getString("vid");
+                                youtube.setEnabled(true);
+                                youtube.setAlpha(1);
+                                youtube.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        if(appInstalledOrNot("com.google.android.youtube")) {
+                                            Intent intent = new Intent(Intent.ACTION_VIEW,
+                                                    Uri.parse("vnd.youtube:" + vidID));
+                                            startActivity(intent);
+                                        }
+                                        else
+                                            startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("http://www.youtube.com/watch?v="+vidID)));
+                                    }
+                                });
+                            }
+                            if(!externalmetadataObject.has("youtube")){
+
+                                youtube.setEnabled(false);
+
+                                youtube.setAlpha(0.5f);
+
+                                vidID="NOID";
+
+                            }
+                            if(!externalmetadataObject.has("spotify")){
+                                spotify.setEnabled(false);
+                                spotify.setAlpha(0.5f);
                                 trackID = "NOID";
                                 imageURL="https://deathgrind.club/uploads/posts/2017-09/1506510157_no_cover.png";
                             }
                         }
                         Log.i("ID",trackID);
 
-                    }
+                  //  }
 
 
                   //  prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -494,7 +628,17 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
              mResult.setTextIsSelectable(true);
 
             }
+            else if(j2==3003 || j2==3015){
+
+                progressBar.setVisibility(View.VISIBLE);
+
+                    continueRec();
+                Log.i("into 3003","yo");
+
+               // deactApi();
+            }
             else {
+                coloredring.clearAnimation();
                 progressBar.setVisibility(View.INVISIBLE);
                 mResult.setText(mResult.getText()+"\n\n"+ "Sorry! Music not found in database");
                 //Toast.makeText(AudioRecognition.this, "Sorry! Music not found in Database", Toast.LENGTH_LONG).show();
@@ -508,9 +652,14 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
     }
 
+
+
+
     @Override
     public void onVolumeChanged(double volume) {
 
+
+        Log.i("Vol",volume*100+"");
         long time = (System.currentTimeMillis() - startTime) / 1000;
         mResult.setText("\n\n\n\n\n\n\n\nPress Button to start listening..\n\nYour lyrics will appear here\n\nTime Elapsed: "+time + " s");
 
@@ -630,7 +779,8 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
             // Receiving a result from the AccountPicker
             if (resultCode == RESULT_OK) {
                 startBtn.setVisibility(View.VISIBLE);
-                listbtn.setVisibility(View.VISIBLE);
+                coloredring.setVisibility(View.VISIBLE);
+//                listbtn.setVisibility(View.VISIBLE);
                 mResult.setText("\n\n\n\n\n\n\n\n\n\n\nPress Button to start listening..\n\nYour lyrics will appear here");
                 initialise();
               //  Toast.makeText(this, "Initializing!", Toast.LENGTH_SHORT).show();
@@ -714,6 +864,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                         progressBar.setVisibility(View.GONE);
                        // Toast.makeText(AudioRecognition.this, "Initialized!", Toast.LENGTH_SHORT).show();
                         Log.i("Success","Success");
+                        DB_ID=jsonObject.getString("ID");
                         host=jsonObject.getString("host");
                         accessKey=jsonObject.getString("access_key");
                         accessSecret=jsonObject.getString("access_secret");
@@ -736,9 +887,9 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                         // the function initWithConfig is used to load offline db, and it may cost long time.
                         initState = mClient.initWithConfig(mConfig);
                         Log.i("init",""+initState);
-                        if (initState) {
+                      /*  if (initState) {
                             mClient.startPreRecord(3000); //start prerecord, you can call "this.mClient.stopPreRecord()" to stop prerecord.
-                        }
+                        }*/
 
 
                     }
@@ -749,9 +900,7 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
                 }
             }
         };
-        LyricsRequest request = new LyricsRequest("http://eurus.000webhostapp.com/lyricsxapi.php", responseListener);
-        request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        LyricsRequest request = new LyricsRequest("http://bboyrajibx.xyz/lyricsxapi.php", responseListener);
         RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
         queue.add(request);
     }
@@ -888,9 +1037,14 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.edit) {
+            coloredring.setVisibility(View.GONE);
             seekBar.setVisibility(View.VISIBLE);
             save.setVisibility(View.VISIBLE);
             startBtn.setVisibility(View.GONE);
+            spotify.setVisibility(View.GONE);
+            youtube.setVisibility(View.GONE);
+            spotify.setEnabled(false);
+            youtube.setEnabled(false);
         }
         if(id == R.id.listAR){
             startActivity(new Intent(AudioRecognition.this, SongListRecyclerView.class));
@@ -898,6 +1052,41 @@ public class AudioRecognition extends AppCompatActivity implements IACRCloudList
 
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void deactApi() {
+
+        Response.Listener<String> responseListener = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try{
+
+
+
+                }catch (Exception e){
+                   // Toast.makeText(AudioRecognition.this, "Please check your internet connection!", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+            }
+        };
+        BackupRestorePostRequest request = new BackupRestorePostRequest("http://bboyrajibx.xyz/lyricsx_deactApi.php",DB_ID,0, responseListener);
+        request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        RequestQueue queue = Volley.newRequestQueue(AudioRecognition.this);
+        queue.add(request);
+
+
+    }
+
+    private boolean appInstalledOrNot(String uri) {
+        PackageManager pm = getPackageManager();
+        try {
+            pm.getPackageInfo(uri, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+
+        return false;
     }
 
 

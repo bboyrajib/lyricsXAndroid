@@ -18,7 +18,7 @@ import android.widget.TextView;
 public class DeveloperActivity extends AppCompatActivity {
 
 
-    ImageView fb,gh;
+    ImageView fb,gh,insta,linkedin;
     TextView textView,textView2,textView3;
     SharedPreferences prefs;
 
@@ -52,6 +52,8 @@ public class DeveloperActivity extends AppCompatActivity {
 
         fb=(ImageView)findViewById(R.id.fb);
         gh=(ImageView)findViewById(R.id.gh);
+        insta=(ImageView)findViewById(R.id.insta);
+        linkedin=(ImageView)findViewById(R.id.linkedin);
 
         if(prefs.getBoolean("isNightModeEnabledTrue",false)){
             ((CardView)findViewById(R.id.cvDev)).setCardBackgroundColor(Color.parseColor("#29282e"));
@@ -60,6 +62,8 @@ public class DeveloperActivity extends AppCompatActivity {
             textView3.setTextColor(Color.WHITE);
             fb.setImageResource(R.drawable.fbnight);
             gh.setImageResource(R.drawable.ghnight);
+            insta.setImageResource(R.drawable.instanight);
+            linkedin.setImageResource(R.drawable.linkedinnight);
 
         }
         textView.setTypeface(typeface);
@@ -78,6 +82,19 @@ public class DeveloperActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("https://github.com/bboyrajib")));
+            }
+        });
+        insta.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("https://instagram.com/_u/bboyrajib")));
+            }
+        });
+
+        linkedin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("https://www.linkedin.com/in/rajib-roy/")));
             }
         });
     }

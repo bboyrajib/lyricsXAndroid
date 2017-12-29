@@ -127,8 +127,29 @@
 
             android:layout_centerHorizontal="true">
 
-
-
+            <Button
+                android:id="@+id/spotify"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentStart="true"
+                android:layout_marginBottom="11dp"
+                android:background="@drawable/spotify"
+                android:layout_marginTop="10dp"
+                android:layout_marginRight="50dp"
+                android:elevation="10dp"
+                android:alpha="0"
+                />
+            <FrameLayout
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginBottom="7dp">
+                <ImageView
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:src="@drawable/coloredring"
+                    android:layout_marginTop="10dp"
+                    android:id="@+id/coloredring"/>
             <Button
                 android:id="@+id/start"
                 android:layout_width="70dp"
@@ -136,10 +157,23 @@
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentStart="true"
                 android:layout_marginBottom="11dp"
-                android:background="@drawable/recognisewhite"
+                android:background="@drawable/recognisewhitesimple"
                 android:layout_marginTop="10dp"
-
+                android:gravity="center"
                 android:elevation="10dp" />
+            </FrameLayout>
+            <Button
+                android:id="@+id/yt"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentStart="true"
+                android:layout_marginBottom="11dp"
+                android:background="@drawable/yt"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="50dp"
+                android:elevation="10dp"
+                android:alpha="0"/>
 
         </LinearLayout>
     </RelativeLayout>
